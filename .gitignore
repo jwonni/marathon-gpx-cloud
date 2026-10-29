@@ -21,3 +21,21 @@ outputs/
 
 # model weights
 weights/
+# 벤치마크 크롭 이미지 (재생성 가능, 10MB)
+bench/crops/
+
+# Terraform: state·변수 값·플러그인은 올리지 않는다 (state 는 S3, 변수 값은 로컬)
+*.tfstate
+*.tfstate.*
+.terraform/
+*.auto.tfvars
+
+# 벤치마크 지도 이미지 — 대회 측 지도라 재배포하지 않는다
+/마라톤코스4.webp
+bench/eq/*.webp
+
+# Hi-SAM: 코드만 포함. 가중치(1.3GB)·예제 이미지·데이터셋은 제외
+Hi-SAM/pretrained_checkpoint/
+Hi-SAM/.asset/
+Hi-SAM/demo/
+Hi-SAM/datasets/
