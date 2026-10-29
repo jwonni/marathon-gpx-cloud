@@ -1,0 +1,145 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1200" viewBox="0 0 1200 1200" font-family="'Pretendard','Noto Sans KR','Malgun Gothic',sans-serif">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#495057"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#2B8A3E"/>
+    </marker>
+    <style>
+      .t  { fill:#212529; }
+      .s  { fill:#6C757D; font-size:14px; }
+      .h  { font-size:26px; font-weight:700; fill:#212529; }
+      .lb { font-size:16px; font-weight:700; fill:#212529; }
+      .row{ font-size:15px; fill:#343A40; }
+      .tag{ font-size:14px; font-weight:700; }
+      .box{ fill:#FFFFFF; stroke:#CED4DA; stroke-width:1.5; }
+      .ln { stroke:#868E96; stroke-width:1.5; fill:none; }
+    </style>
+  </defs>
+
+  <rect width="1200" height="1200" fill="#FFFFFF"/>
+
+  <!-- ===================== 분리 전 ===================== -->
+  <rect x="20" y="20" width="1160" height="440" rx="16" fill="#F8F9FA"/>
+  <text x="48" y="64" class="h">분리 전</text>
+  <text x="148" y="63" class="s">2026-09-16 · 컨테이너 1개</text>
+  <text x="1150" y="66" text-anchor="end" font-size="16" fill="#6C757D">지도 1장 처리 <tspan font-size="32" font-weight="700" fill="#E03131">154초</tspan></text>
+
+  <rect x="48" y="190" width="130" height="64" rx="10" class="box"/>
+  <text x="113" y="228" text-anchor="middle" class="row">브라우저</text>
+  <line x1="178" y1="222" x2="258" y2="222" stroke="#495057" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <rect x="230" y="96" width="920" height="250" rx="12" fill="none" stroke="#ADB5BD" stroke-width="1.5" stroke-dasharray="6 5"/>
+  <text x="248" y="120" class="s">EC2 g4dn.xlarge · NVIDIA T4 16GB</text>
+
+  <rect x="260" y="136" width="520" height="190" rx="10" fill="#FFFFFF" stroke="#495057" stroke-width="1.5"/>
+  <text x="280" y="164" class="lb">앱 컨테이너 <tspan class="s" font-weight="400">FastAPI · torch (CUDA 13)</tspan></text>
+
+  <rect x="280" y="180" width="480" height="40" rx="6" fill="#F1F3F5"/>
+  <text x="296" y="205" class="row">SegFormer — 코스 영역 분할</text>
+  <text x="744" y="205" text-anchor="end" class="tag" fill="#1C7ED6">GPU</text>
+
+  <rect x="280" y="228" width="480" height="40" rx="6" fill="#F1F3F5"/>
+  <text x="296" y="253" class="row">Hi-SAM — 글자 영역 검출</text>
+  <text x="744" y="253" text-anchor="end" class="tag" fill="#1C7ED6">GPU · 6.2s</text>
+
+  <rect x="280" y="276" width="480" height="40" rx="6" fill="#FFF0F0" stroke="#E03131" stroke-width="1.5"/>
+  <text x="296" y="301" class="row" font-weight="700">PaddleOCR — 글자 인식</text>
+  <text x="744" y="301" text-anchor="end" class="tag" fill="#E03131">CPU · 145.7s (94%)</text>
+
+  <line x1="760" y1="296" x2="808" y2="296" stroke="#E03131" stroke-width="1.5" stroke-dasharray="4 4"/>
+  <rect x="808" y="232" width="322" height="94" rx="10" fill="#FFF5F5" stroke="#FFA8A8" stroke-width="1.5"/>
+  <text x="824" y="258" class="tag" fill="#C92A2A">왜 CPU였나</text>
+  <text x="824" y="281" font-size="13.5" fill="#495057">torch(CUDA 13)와 paddle GPU(CUDA 12.6)가</text>
+  <text x="824" y="300" font-size="13.5" fill="#495057">한 이미지에서 CUDA 라이브러리를 덮어씀</text>
+  <text x="824" y="319" font-size="13.5" fill="#495057">→ PaddleOCR을 CPU로 고정할 수밖에 없음</text>
+
+  <rect x="300" y="384" width="230" height="52" rx="10" class="box"/>
+  <text x="415" y="415" text-anchor="middle" class="row">S3 · 모델 가중치 1.7GB</text>
+  <line x1="415" y1="384" x2="415" y2="330" stroke="#495057" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <rect x="570" y="384" width="230" height="52" rx="10" class="box"/>
+  <text x="685" y="415" text-anchor="middle" class="row">카카오 로컬 API · 좌표 검색</text>
+  <line x1="685" y1="328" x2="685" y2="382" stroke="#495057" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- ===================== 분리 후 ===================== -->
+  <g transform="translate(0,490)">
+  <rect x="20" y="0" width="1160" height="460" rx="16" fill="#F8F9FA"/>
+  <text x="48" y="44" class="h">분리 후</text>
+  <text x="148" y="43" class="s">2026-10-28 · 컨테이너 2개</text>
+  <text x="1150" y="46" text-anchor="end" font-size="16" fill="#6C757D">지도 1장 처리 <tspan font-size="32" font-weight="700" fill="#2B8A3E">25.7초</tspan> <tspan font-size="18" font-weight="700" fill="#2B8A3E">(6.0배)</tspan></text>
+
+  <rect x="48" y="170" width="130" height="64" rx="10" class="box"/>
+  <text x="113" y="208" text-anchor="middle" class="row">브라우저</text>
+  <line x1="178" y1="202" x2="258" y2="202" stroke="#495057" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <rect x="230" y="76" width="920" height="250" rx="12" fill="none" stroke="#ADB5BD" stroke-width="1.5" stroke-dasharray="6 5"/>
+  <text x="248" y="100" class="s">EC2 g4dn.xlarge · NVIDIA T4 16GB (두 컨테이너가 GPU 공유)</text>
+
+  <!-- 앱 컨테이너 -->
+  <rect x="260" y="116" width="380" height="190" rx="10" fill="#FFFFFF" stroke="#495057" stroke-width="1.5"/>
+  <text x="280" y="144" class="lb">앱 컨테이너 <tspan class="s" font-weight="400">torch (CUDA 13)</tspan></text>
+
+  <rect x="280" y="160" width="340" height="40" rx="6" fill="#F1F3F5"/>
+  <text x="296" y="185" class="row">SegFormer — 코스 영역 분할</text>
+  <text x="604" y="185" text-anchor="end" class="tag" fill="#1C7ED6">GPU</text>
+
+  <rect x="280" y="208" width="340" height="40" rx="6" fill="#F1F3F5"/>
+  <text x="296" y="233" class="row">Hi-SAM — 글자 영역 검출</text>
+  <text x="604" y="233" text-anchor="end" class="tag" fill="#1C7ED6">GPU · 6.3s</text>
+
+  <rect x="280" y="256" width="340" height="40" rx="6" fill="#FFFFFF" stroke="#CED4DA" stroke-dasharray="4 3"/>
+  <text x="296" y="281" class="row" fill="#6C757D">ocr_client — OCR 서비스에 요청</text>
+
+  <!-- 호출 화살표 -->
+  <line x1="640" y1="196" x2="778" y2="196" stroke="#2B8A3E" stroke-width="2" marker-end="url(#arrG)"/>
+  <text x="709" y="184" text-anchor="middle" font-size="13" font-weight="700" fill="#2B8A3E">POST /ocr</text>
+  <text x="709" y="216" text-anchor="middle" font-size="12" fill="#495057">이미지 + 글자영역</text>
+  <line x1="780" y1="256" x2="642" y2="256" stroke="#2B8A3E" stroke-width="2" marker-end="url(#arrG)"/>
+  <text x="709" y="276" text-anchor="middle" font-size="12" fill="#495057">텍스트 106개</text>
+
+  <!-- OCR 컨테이너 -->
+  <rect x="780" y="116" width="350" height="190" rx="10" fill="#FFFFFF" stroke="#2B8A3E" stroke-width="2"/>
+  <text x="800" y="144" class="lb">OCR 컨테이너 <tspan class="s" font-weight="400">paddle (CUDA 12.6)</tspan></text>
+
+  <rect x="800" y="160" width="310" height="40" rx="6" fill="#EBFBEE" stroke="#2B8A3E" stroke-width="1.5"/>
+  <text x="816" y="185" class="row" font-weight="700">PaddleOCR — 글자 인식</text>
+  <text x="1094" y="185" text-anchor="end" class="tag" fill="#2B8A3E">GPU · 17.3s</text>
+
+  <text x="800" y="230" font-size="13.5" fill="#495057">· torch 없는 별도 이미지 → CUDA 충돌 해소</text>
+  <text x="800" y="252" font-size="13.5" fill="#495057">· OCR_SERVICE_URL 이 비면 앱 안에서 실행</text>
+  <text x="800" y="274" font-size="13.5" fill="#495057">· 분리 전후 OCR 결과 106개 완전 일치 검증</text>
+
+  <rect x="300" y="364" width="230" height="52" rx="10" class="box"/>
+  <text x="415" y="395" text-anchor="middle" class="row">S3 · 모델 가중치 1.7GB</text>
+  <line x1="415" y1="364" x2="415" y2="310" stroke="#495057" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <rect x="570" y="364" width="230" height="52" rx="10" class="box"/>
+  <text x="685" y="395" text-anchor="middle" class="row">카카오 로컬 API · 좌표 검색</text>
+  <path d="M600,306 L600,336 L685,336 L685,362" stroke="#495057" stroke-width="1.5" fill="none" marker-end="url(#arr)"/>
+  </g>
+
+  <!-- ===================== 처리 시간 비교 ===================== -->
+  <text x="48" y="1000" class="lb">지도 1장 처리 시간 <tspan class="s" font-weight="400">같은 g4dn.xlarge · 같은 지도(911×642) · 앱 [resource] 로그 기준</tspan></text>
+
+  <!-- 1초 = 5.84px, 막대 시작 x=200 -->
+  <text x="48" y="1040" class="lb">분리 전</text>
+  <text x="48" y="1060" font-size="14" fill="#E03131" font-weight="700">153.7초</text>
+  <rect x="200" y="1024" width="10.5" height="44" fill="#ADB5BD"/>
+  <rect x="210.5" y="1024" width="36.2" height="44" fill="#4DABF7"/>
+  <rect x="246.7" y="1024" width="851" height="44" fill="#FF8787"/>
+  <text x="1086" y="1052" text-anchor="end" font-size="14" font-weight="700" fill="#FFFFFF">PaddleOCR (CPU) 145.7초</text>
+
+  <text x="48" y="1114" class="lb">분리 후</text>
+  <text x="48" y="1134" font-size="14" fill="#2B8A3E" font-weight="700">25.7초</text>
+  <rect x="200" y="1098" width="11.7" height="44" fill="#ADB5BD"/>
+  <rect x="211.7" y="1098" width="36.8" height="44" fill="#4DABF7"/>
+  <rect x="248.5" y="1098" width="101.6" height="44" fill="#69DB7C"/>
+  <text x="364" y="1126" font-size="14" fill="#343A40"><tspan font-weight="700" fill="#2B8A3E">PaddleOCR (GPU) 17.3초</tspan> · Hi-SAM 6.3초 · 기타 2.1초</text>
+
+  <rect x="200" y="1166" width="14" height="14" fill="#FF8787"/><text x="220" y="1178" class="s">OCR (CPU)</text>
+  <rect x="320" y="1166" width="14" height="14" fill="#69DB7C"/><text x="340" y="1178" class="s">OCR (GPU)</text>
+  <rect x="440" y="1166" width="14" height="14" fill="#4DABF7"/><text x="460" y="1178" class="s">Hi-SAM</text>
+  <rect x="540" y="1166" width="14" height="14" fill="#ADB5BD"/><text x="560" y="1178" class="s">기타 (코스 분할 · 경로 추출 · 지오레퍼런싱 · GPX 변환)</text>
+</svg>
