@@ -5,7 +5,13 @@ FastAPI server — Marathon Route Segmentation Web App
 import json
 import os
 import logging
+import threading
+import time
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
+# PaddleOCR(PaddleX)이 로드되면서 root 로거 레벨을 WARNING 으로 바꿔 앱의 INFO 로그([resource] 등)가 사라진다.
+# 앱 로거에 레벨을 직접 지정해 두면 root 레벨이 바뀌어도 영향받지 않는다.
+for _name in ("src", "resource", "warmup", "georeference", "run_ocr", "run_georeference", "ocr", "anchor_builder"):
+    logging.getLogger(_name).setLevel(logging.INFO)
 os.environ["FLAGS_use_mkldnn"] = "0"       # PaddlePaddle Windows oneDNN 버그 회피
 os.environ["FLAGS_enable_pir_api"] = "0"   # PIR 런타임 속성 변환 오류 회피
 
@@ -13,6 +19,8 @@ import base64
 import io
 import traceback
 from pathlib import Path
+
+import psutil
 
 import numpy as np
 import torch
@@ -51,6 +59,89 @@ app = FastAPI(title="Marathon Route Extraction")
 static_dir = Path(__file__).parent / "static"
 if static_dir.exists():
     app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
+
+
+@app.middleware("http")
+async def log_resource_usage(request, call_next):
+    """/api/* 요청별로 elapsed / RAM peak / VRAM peak / CPU% 를 로깅한다."""
+    if not request.url.path.startswith("/api/"):
+        return await call_next(request)
+
+    proc = psutil.Process()
+    rss_before = proc.memory_info().rss / 1024**2  # MB
+    cpu_before = proc.cpu_times()
+    if torch.cuda.is_available():
+        torch.cuda.reset_peak_memory_stats()
+
+    # 0.1초 간격으로 RSS 샘플링해서 peak 추적
+    peak_rss = [rss_before]
+    stop_event = threading.Event()
+    def _sample_rss():
+        while not stop_event.is_set():
+            cur = proc.memory_info().rss / 1024**2
+            if cur > peak_rss[0]:
+                peak_rss[0] = cur
+            stop_event.wait(0.1)
+    sampler = threading.Thread(target=_sample_rss, daemon=True)
+    sampler.start()
+
+    t0 = time.perf_counter()
+    try:
+        response = await call_next(request)
+    finally:
+        elapsed = time.perf_counter() - t0
+        stop_event.set()
+        sampler.join(timeout=0.5)
+
+        cpu_after = proc.cpu_times()
+        cpu_used  = (cpu_after.user + cpu_after.system) - (cpu_before.user + cpu_before.system)
+        cpu_pct   = (cpu_used / elapsed / max(psutil.cpu_count() or 1, 1)) * 100 if elapsed > 0 else 0.0
+        vram_peak = torch.cuda.max_memory_allocated() / 1024**2 if torch.cuda.is_available() else 0.0
+
+        logging.getLogger("resource").info(
+            "[resource] %s  elapsed=%.2fs  ram_peak=%.0fMB  ram_delta=%+.0fMB  vram_peak=%.0fMB  cpu=%.0f%%",
+            request.url.path, elapsed,
+            peak_rss[0], peak_rss[0] - rss_before, vram_peak, cpu_pct,
+        )
+    return response
+
+
+@app.on_event("startup")
+async def warmup_models():
+    """서버 시작 시 모든 모델을 미리 로드해 첫 요청 지연을 제거한다."""
+    log = logging.getLogger("warmup")
+    total_t = time.perf_counter()
+
+    # 1) segformer/unet (경로 추출 모델)
+    try:
+        t = time.perf_counter()
+        get_model()
+        log.info("[warmup] segformer/unet loaded in %.2fs", time.perf_counter() - t)
+    except Exception as e:
+        log.warning("[warmup] segformer/unet 로드 실패: %s", e)
+
+    # 2) Hi-SAM (텍스트 분할)
+    try:
+        from src.georeferencing.text_detector import _get_hisam_amg
+        t = time.perf_counter()
+        _get_hisam_amg()
+        log.info("[warmup] Hi-SAM loaded in %.2fs", time.perf_counter() - t)
+    except Exception as e:
+        log.warning("[warmup] Hi-SAM 로드 실패: %s", e)
+
+    # 3) PaddleOCR — OCR 서비스를 쓰면 앱 프로세스에는 올리지 않는다
+    if Config.OCR_SERVICE_URL:
+        log.info("[warmup] PaddleOCR 로드 생략 — OCR 서비스 사용: %s", Config.OCR_SERVICE_URL)
+    else:
+        try:
+            from src.georeferencing.ocr import load_paddle_ocr
+            t = time.perf_counter()
+            load_paddle_ocr()
+            log.info("[warmup] PaddleOCR loaded in %.2fs", time.perf_counter() - t)
+        except Exception as e:
+            log.warning("[warmup] PaddleOCR 로드 실패: %s", e)
+
+    log.info("[warmup] all models ready in %.2fs", time.perf_counter() - total_t)
 
 # ── Model singleton ───────────────────────────────────────────────────────────
 
@@ -460,7 +551,7 @@ async def georeference(file: UploadFile = File(...)):
 
     try:
         from src.georeferencing.text_detector import run_hisam_to_json
-        from src.georeferencing.ocr import run_ocr
+        from src.georeferencing.ocr_client import run_ocr_auto
         from src.georeferencing.anchor_builder import build_anchors, is_good_anchor
         from src.georeferencing.homography import (
             HomographyTransform, iterative_outlier_removal,
@@ -508,7 +599,7 @@ async def georeference(file: UploadFile = File(...)):
 
         # Stage 2: PaddleOCR (크롭별 base/retry)
         logger.info("[Stage2] PaddleOCR 시작")
-        ocr_results = run_ocr(hisam_payload, crop_dir)
+        ocr_results = run_ocr_auto(hisam_payload, crop_dir)
         logger.info("[Stage2] OCR 완료: %d개 텍스트", len(ocr_results))
 
         # Stage 3: 앵커 후보 선별 → 카카오 병렬 검색 → MAD 필터
@@ -628,7 +719,8 @@ async def run_ocr_endpoint(file: UploadFile = File(...)):
 
     try:
         from src.georeferencing.text_detector import run_hisam_to_json
-        from src.georeferencing.ocr import run_ocr, classify_ocr_to_categories
+        from src.georeferencing.ocr import classify_ocr_to_categories
+        from src.georeferencing.ocr_client import run_ocr_auto
     except ImportError as exc:
         raise HTTPException(
             status_code=503,
@@ -656,7 +748,7 @@ async def run_ocr_endpoint(file: UploadFile = File(...)):
         hisam_payload = run_hisam_to_json(tmp_path)
         logger.info("[run_ocr] Hi-SAM 완료: polygon %d개", hisam_payload.get("num_words", 0))
 
-        ocr_results = run_ocr(hisam_payload, crop_dir)
+        ocr_results = run_ocr_auto(hisam_payload, crop_dir)
         logger.info("[run_ocr] OCR 완료: %d개 텍스트", len(ocr_results))
 
         category_pixels = classify_ocr_to_categories(ocr_results)

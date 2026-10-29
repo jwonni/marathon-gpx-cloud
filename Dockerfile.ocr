@@ -1,0 +1,34 @@
+# OCR 전용 이미지 — PaddleOCR 만, torch 없음.
+# 앱 이미지 안에서는 torch(CUDA 13)와 paddlepaddle-gpu(CUDA 12.6)가 CUDA 라이브러리를 서로 덮어써 torch 가 깨진다.
+#
+# GPU 빌드 (EC2 등 NVIDIA 환경, 기본값):
+#   docker build -f Dockerfile.ocr -t marathon-ocr:gpu .
+# CPU 빌드 (로컬 검증용):
+#   docker build -f Dockerfile.ocr -t marathon-ocr:cpu \
+#     --build-arg PADDLE_PKG=paddlepaddle==3.2.2 --build-arg PADDLE_INDEX=https://pypi.org/simple .
+FROM python:3.12-slim
+
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends libgl1 libglib2.0-0 libgomp1 \
+ && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# 1) paddle — 가장 무겁고 거의 안 바뀜 (GPU 판은 약 5GB)
+ARG PADDLE_PKG=paddlepaddle-gpu==3.2.2
+ARG PADDLE_INDEX=https://www.paddlepaddle.org.cn/packages/stable/cu126/
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install --retries 10 --timeout 60 "$PADDLE_PKG" -i "$PADDLE_INDEX"
+
+# 2) 나머지 의존성
+COPY requirements-ocr.txt .
+RUN --mount=type=cache,target=/root/.cache/pip pip install -r requirements-ocr.txt
+
+# 3) 코드 — OCR 에 필요한 것만
+COPY src/ src/
+COPY ocr_service.py .
+
+# CPU 빌드로 실행할 때는 -e PADDLE_DEVICE=cpu 로 덮어쓴다
+ENV PADDLE_DEVICE=gpu
+EXPOSE 8020
+CMD ["uvicorn", "ocr_service:app", "--host", "0.0.0.0", "--port", "8020"]

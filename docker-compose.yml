@@ -1,0 +1,40 @@
+# 로컬 검증용: 앱 + OCR 서비스 두 컨테이너 (CPU)
+#
+#   docker compose up          # 실행 (Ctrl+C 로 종료)
+#   docker compose logs -f ocr # OCR 서비스 로그만 보기
+#
+# 필요한 이미지:
+#   docker build -t marathon-gpx:local .
+#   docker build -f Dockerfile.ocr -t marathon-ocr:cpu --build-arg PADDLE_PKG=paddlepaddle==3.2.2 --build-arg PADDLE_INDEX=https://pypi.org/simple .
+
+services:
+  ocr:
+    image: marathon-ocr:cpu
+    environment:
+      PADDLE_DEVICE: cpu
+    volumes:
+      - paddlex-cache:/root/.paddlex        # 앱과 같은 OCR 모델 캐시 공유
+    healthcheck:
+      # PaddleOCR 로드가 끝나야 /health 가 응답한다 → 그 전에는 앱을 띄우지 않음
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8020/health')"]
+      interval: 5s
+      timeout: 3s
+      retries: 60
+
+  app:
+    image: marathon-gpx:local
+    ports:
+      - "8010:8010"
+    env_file: .env
+    environment:
+      OCR_SERVICE_URL: http://ocr:8020      # 같은 compose 네트워크에서는 서비스 이름이 곧 주소
+    volumes:
+      - ./weights:/app/weights
+      - ./Hi-SAM/pretrained_checkpoint:/app/Hi-SAM/pretrained_checkpoint
+    depends_on:
+      ocr:
+        condition: service_healthy
+
+volumes:
+  paddlex-cache:
+    external: true                          # docker run 때 만든 기존 볼륨 재사용

@@ -24,8 +24,12 @@ SKEL_MORPH_CLOSE = 0        # 스켈레톤화 전 morphology closing 커널 크�
 import os
 from pathlib import Path
 
-import torch
 from dotenv import load_dotenv
+
+try:
+    import torch
+except ImportError:  # OCR 전용 이미지(ocr_service)에는 torch 가 없다 — paddle GPU 와 CUDA 라이브러리가 충돌하기 때문
+    torch = None
 
 load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 
@@ -39,7 +43,7 @@ class Config:
     MODEL_PATH = BASE_DIR / "weights" / (
         "segformer_unet_b2_best.pt" if MODEL_TYPE == "segformer_unet_b2" else "unet_best.pt"
     )
-    DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu") if torch else "cpu"
 
     IMAGE_SIZE = 768 if MODEL_TYPE == "segformer_unet_b2" else 512
     THRESHOLD = 0.5
@@ -53,8 +57,10 @@ class Config:
     HISAM_CHECKPOINT = BASE_DIR / "Hi-SAM" / "pretrained_checkpoint" / "hi_sam_l.pth"
     HISAM_MODEL_TYPE = "vit_l"          # vit_t / vit_s / vit_b / vit_l / vit_h
 
-    HISAM_TOTAL_POINTS = 3000
+    HISAM_TOTAL_POINTS = 1000
     HISAM_BATCH_POINTS = 64
+    # ViT 입력 해상도 — 1024가 기본, 512로 줄이면 set_image/predict 약 4배 빨라짐 (작은 글자 인식률 감소)
+    HISAM_INPUT_SIZE = (512, 512)
     HISAM_SCORE_THRESH = 0.4
     HISAM_NMS_THRESH   = 0.6
     HISAM_MIN_POLYGON_AREA = 32
@@ -64,7 +70,12 @@ class Config:
     HISAM_CROP_Y_MARGIN = 0
 
     # ── PaddleOCR 입력 전처리 ────────────────────────────────────────────────────
-    PADDLE_DEVICE = "cpu"               # torch(Hi-SAM)와 CUDA 충돌 방지
+    # 앱 이미지에서는 torch(Hi-SAM)와 CUDA 라이브러리가 충돌하므로 cpu.
+    # OCR 전용 이미지(Dockerfile.ocr)에서만 환경변수로 gpu 를 켠다.
+    PADDLE_DEVICE = os.environ.get("PADDLE_DEVICE", "cpu")
+    # 설정되면 앱은 OCR 을 같은 프로세스에서 돌리지 않고 이 주소의 OCR 서비스로 보낸다 (예: http://ocr:8020)
+    OCR_SERVICE_URL = os.environ.get("OCR_SERVICE_URL", "")
+    OCR_SERVICE_TIMEOUT = float(os.environ.get("OCR_SERVICE_TIMEOUT", "600"))  # 초
     PREP_TARGET_LONG_SIDE  = 256
     PREP_RETRY_LONG_SIDE   = 512
     PREP_MIN_HEIGHT        = 64
