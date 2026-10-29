@@ -1,0 +1,17 @@
+# 모델 가중치 (약 1.7GB) — 이미지에 넣지 않고 실행 시 마운트
+weights/
+Hi-SAM/pretrained_checkpoint/
+
+# 시크릿 — 실행 시 --env-file 로 주입
+.env
+
+# 실행에 불필요한 것
+.git/
+Hi-SAM/.git/
+Hi-SAM/.asset/
+Hi-SAM/datasets/
+**/__pycache__/
+.claude/
+docs/
+infra/
+scripts/
