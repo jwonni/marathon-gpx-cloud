@@ -530,7 +530,7 @@ async def georeference(file: UploadFile = File(...)):
       1. Hi-SAM → polygon JSON
       2. PaddleOCR (크롭별 base/retry 두 해상도)
       3. confidence 필터 + X 병합 후처리
-      4. 앵커 후보 선별 → 카카오 API 병렬 검색 → MAD 필터 (build_anchors)
+      4. 앵커 후보 선별 → 카카오 API 병렬 검색 → 밀집 영역 필터 (build_anchors)
       5. 1차 재투영 오차 정제 (iterative_outlier_removal)
       6. Hough Circle 마커 검출 → 점진적 오프셋 캘리브레이션
       7. 오프셋 적용 → 2차 재투영 오차 정제 → 최종 호모그래피
@@ -602,7 +602,7 @@ async def georeference(file: UploadFile = File(...)):
         ocr_results = run_ocr_auto(hisam_payload, crop_dir)
         logger.info("[Stage2] OCR 완료: %d개 텍스트", len(ocr_results))
 
-        # Stage 3: 앵커 후보 선별 → 카카오 병렬 검색 → MAD 필터
+        # Stage 3: 앵커 후보 선별 → 카카오 병렬 검색 → 밀집 영역 필터
         candidates = [r for r in ocr_results if is_good_anchor(r.get("text", ""))]
         logger.info("[Stage3] is_good_anchor 통과: %d개 / OCR %d개", len(candidates), len(ocr_results))
         for c in candidates:
@@ -633,7 +633,7 @@ async def georeference(file: UploadFile = File(...)):
         else:
             offset_dx, offset_dy = 0.0, 0.0
 
-        # Stage 6: 오프셋을 MAD 통과 전체에 적용 → 2차 재투영 오차 정제
+        # Stage 6: 오프셋을 영역 필터 통과 전체에 적용 → 2차 재투영 오차 정제
         anchors_corrected = [
             (a[0] + offset_dx, a[1] + offset_dy, a[2], a[3], a[4], a[5])
             for a in anchors_after_mad
@@ -827,7 +827,7 @@ async def run_georeference_endpoint(
 
         logger = logging.getLogger("run_georeference")
 
-        # 앵커 후보 선별 → 카카오 병렬 검색 → MAD 필터
+        # 앵커 후보 선별 → 카카오 병렬 검색 → 밀집 영역 필터
         candidates = [r for r in ocr_results if is_good_anchor(r.get("text", ""))]
         logger.info("[run_geo] 앵커 후보: %d개 / OCR %d개", len(candidates), len(ocr_results))
         for c in candidates:

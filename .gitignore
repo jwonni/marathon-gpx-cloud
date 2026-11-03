@@ -39,3 +39,7 @@ Hi-SAM/pretrained_checkpoint/
 Hi-SAM/.asset/
 Hi-SAM/demo/
 Hi-SAM/datasets/
+
+# 지도 캡처로 만든 파이프라인 결과 (지도 데이터 포함)
+bench/e2e/
+/123.png

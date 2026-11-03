@@ -57,10 +57,11 @@ class Config:
     HISAM_CHECKPOINT = BASE_DIR / "Hi-SAM" / "pretrained_checkpoint" / "hi_sam_l.pth"
     HISAM_MODEL_TYPE = "vit_l"          # vit_t / vit_s / vit_b / vit_l / vit_h
 
-    HISAM_TOTAL_POINTS = 1000
+    # 팀 버전 값으로 복원 (2026-11-03). 1000점·512 해상도에서 masks=0 실패가 57% (decision-log 24번)
+    HISAM_TOTAL_POINTS = 3000
     HISAM_BATCH_POINTS = 64
-    # ViT 입력 해상도 — 1024가 기본, 512로 줄이면 set_image/predict 약 4배 빨라짐 (작은 글자 인식률 감소)
-    HISAM_INPUT_SIZE = (512, 512)
+    # ViT 입력 해상도 — 1024가 기본. 512로 줄이면 약 4배 빨라지지만 작은 글자를 놓쳐 검출 실패가 늘어난다
+    HISAM_INPUT_SIZE = (1024, 1024)
     HISAM_SCORE_THRESH = 0.4
     HISAM_NMS_THRESH   = 0.6
     HISAM_MIN_POLYGON_AREA = 32
@@ -99,7 +100,11 @@ class Config:
     KAKAO_MAX_WORKERS  = 10
     KAKAO_MAX_RETRIES  = 4
     KAKAO_BACKOFF_BASE = 0.7
-    KAKAO_MAD_THRESH   = 2.0
+
+    # ── 앵커 영역 (지도가 가리키는 중심점·반경) ─────────────────────────────────
+    # 중심점: 검색 결과가 가장 촘촘하게 모인 곳. 중앙값은 다른 도시 결과가 절반을 넘으면 엉뚱한 곳에 찍힌다
+    ANCHOR_DENSITY_RADIUS_KM = 5.0    # "촘촘함"을 셀 때 이웃으로 보는 거리
+    ANCHOR_REGION_RADIUS_KM  = 15.0   # 중심점에서 이 거리 안의 결과만 앵커로 인정 (마라톤 코스 한 장이 덮는 범위)
 
     # ── 앵커 후보 필터 ───────────────────────────────────────────────────────────
     ANCHOR_MIN_TEXT_LEN    = 3

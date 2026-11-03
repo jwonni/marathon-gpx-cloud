@@ -96,7 +96,7 @@
 ├── src/
 │   ├── config.py                       # 전역 설정 (환경변수로 OCR 장치·서비스 주소 지정)
 │   ├── georeferencing/
-│   │   ├── anchor_builder.py           # 카카오 API 앵커 구축 + MAD 필터
+│   │   ├── anchor_builder.py           # 카카오 API 앵커 구축 + 밀집 영역 필터
 │   │   ├── homography.py               # 픽셀↔GPS 호모그래피 계산
 │   │   ├── ocr.py                      # PaddleOCR 기반 텍스트 인식 파이프라인
 │   │   ├── ocr_client.py               # [개인] OCR 서비스 호출 / 로컬 실행 선택
@@ -297,9 +297,9 @@ terraform destroy    # "Destroy complete!" 확인. 디스크도 함께 삭제됨
   ↓ PaddleOCR (korean)  — ocr.py
     (y, x) 정렬 → 동일 X 세로 병합
 인식된 텍스트 + 픽셀 좌표  [{text, x, y, confidence}, ...]
-  ↓ 카카오 Local API (병렬 검색 + MAD 필터)  — anchor_builder.py
+  ↓ 카카오 Local API (병렬 검색 + 밀집 영역 필터)  — anchor_builder.py
     기호·키워드 블랙리스트 필터 → ThreadPoolExecutor 병렬 검색
-    MAD 이상치 분류 → outlier 동적 bbox 재검색 → inlier 확정
+    검색 결과가 가장 촘촘한 곳을 중심으로 반경 15km 밖은 이상치 → 이상치는 영역 bbox 안에서 재검색 → 앵커 확정
 앵커 (픽셀 좌표 ↔ GPS 좌표) 쌍
   ↓ 호모그래피 + 재투영 오차 기반 이상치 제거  — homography.py
     1차 정제 (≤ 7.0px) → Hough Circle 마커 오프셋 보정
