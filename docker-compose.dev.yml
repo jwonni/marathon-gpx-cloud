@@ -1,0 +1,19 @@
+# 로컬 개발용: 이미지를 다시 빌드하지 않고 현재 코드를 컨테이너에 연결한다
+#
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+#   → http://localhost:8010
+#
+# 코드를 고친 뒤에는 재시작만 하면 반영된다 (모델 워밍업 약 1분)
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml restart app
+
+services:
+  app:
+    volumes:
+      - ./src:/app/src
+      - ./app.py:/app/app.py
+      - ./static:/app/static
+
+  ocr:
+    volumes:
+      - ./src:/app/src
+      - ./ocr_service.py:/app/ocr_service.py

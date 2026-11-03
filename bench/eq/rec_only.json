@@ -1,0 +1,737 @@
+[
+ {
+  "text": "순천한국병원",
+  "x": 566,
+  "y": 23,
+  "confidence": 0.996678,
+  "num_segments": 1
+ },
+ {
+  "text": "순천세무서",
+  "x": 705,
+  "y": 23,
+  "confidence": 0.995989,
+  "num_segments": 1
+ },
+ {
+  "text": "순천기",
+  "x": 895,
+  "y": 37,
+  "confidence": 0.809515,
+  "num_segments": 1
+ },
+ {
+  "text": "브루웍스",
+  "x": 240,
+  "y": 39,
+  "confidence": 0.998381,
+  "num_segments": 1
+ },
+ {
+  "text": "낭만반점|",
+  "x": 820,
+  "y": 39,
+  "confidence": 0.82192,
+  "num_segments": 1
+ },
+ {
+  "text": "망병원",
+  "x": 15,
+  "y": 40,
+  "confidence": 0.980902,
+  "num_segments": 1
+ },
+ {
+  "text": "버스터미널",
+  "x": 84,
+  "y": 45,
+  "confidence": 0.988539,
+  "num_segments": 1
+ },
+ {
+  "text": "브도서",
+  "x": 900,
+  "y": 52,
+  "confidence": 0.81313,
+  "num_segments": 1
+ },
+ {
+  "text": "호텔아이엠",
+  "x": 283,
+  "y": 60,
+  "confidence": 0.997031,
+  "num_segments": 1
+ },
+ {
+  "text": "①아남아파트",
+  "x": 495,
+  "y": 69,
+  "confidence": 0.86723,
+  "num_segments": 1
+ },
+ {
+  "text": "부영1차 아파트",
+  "x": 766,
+  "y": 76,
+  "confidence": 0.99463,
+  "num_segments": 2
+ },
+ {
+  "text": "현대1차",
+  "x": 716,
+  "y": 77,
+  "confidence": 0.989312,
+  "num_segments": 1
+ },
+ {
+  "text": "전자랜드",
+  "x": 602,
+  "y": 79,
+  "confidence": 0.902386,
+  "num_segments": 1
+ },
+ {
+  "text": "순천역",
+  "x": 351,
+  "y": 80,
+  "confidence": 0.999214,
+  "num_segments": 1
+ },
+ {
+  "text": "아랫장 빛안랫장구",
+  "x": 158,
+  "y": 83,
+  "confidence": 0.851195,
+  "num_segments": 2
+ },
+ {
+  "text": "아파트",
+  "x": 720,
+  "y": 91,
+  "confidence": 0.978662,
+  "num_segments": 1
+ },
+ {
+  "text": "LAND500",
+  "x": 601,
+  "y": 94,
+  "confidence": 0.918539,
+  "num_segments": 1
+ },
+ {
+  "text": "블대주",
+  "x": 901,
+  "y": 95,
+  "confidence": 0.705896,
+  "num_segments": 1
+ },
+ {
+  "text": "순천정원",
+  "x": 261,
+  "y": 97,
+  "confidence": 0.999328,
+  "num_segments": 1
+ },
+ {
+  "text": "순천연향동 후체국",
+  "x": 667,
+  "y": 107,
+  "confidence": 0.962605,
+  "num_segments": 2
+ },
+ {
+  "text": "순천역",
+  "x": 414,
+  "y": 108,
+  "confidence": 0.997837,
+  "num_segments": 1
+ },
+ {
+  "text": "남무시상",
+  "x": 199,
+  "y": 115,
+  "confidence": 0.98158,
+  "num_segments": 1
+ },
+ {
+  "text": "연향금로",
+  "x": 708,
+  "y": 128,
+  "confidence": 0.981879,
+  "num_segments": 1
+ },
+ {
+  "text": "마트",
+  "x": 612,
+  "y": 129,
+  "confidence": 0.834339,
+  "num_segments": 1
+ },
+ {
+  "text": "부영2차",
+  "x": 769,
+  "y": 129,
+  "confidence": 0.974062,
+  "num_segments": 1
+ },
+ {
+  "text": "롯데하이마트",
+  "x": 584,
+  "y": 130,
+  "confidence": 0.997088,
+  "num_segments": 1
+ },
+ {
+  "text": "하나로자동차",
+  "x": 447,
+  "y": 131,
+  "confidence": 0.995919,
+  "num_segments": 1
+ },
+ {
+  "text": "역전시장",
+  "x": 362,
+  "y": 137,
+  "confidence": 0.970916,
+  "num_segments": 1
+ },
+ {
+  "text": "써비스",
+  "x": 442,
+  "y": 145,
+  "confidence": 0.985228,
+  "num_segments": 1
+ },
+ {
+  "text": "[10km빈",
+  "x": 224,
+  "y": 146,
+  "confidence": 0.981245,
+  "num_segments": 1
+ },
+ {
+  "text": "1만온",
+  "x": 251,
+  "y": 146,
+  "confidence": 0.844752,
+  "num_segments": 1
+ },
+ {
+  "text": "이마트",
+  "x": 473,
+  "y": 169,
+  "confidence": 0.996379,
+  "num_segments": 1
+ },
+ {
+  "text": "'풍덕동",
+  "x": 217,
+  "y": 187,
+  "confidence": 0.872657,
+  "num_segments": 1
+ },
+ {
+  "text": "제동",
+  "x": 13,
+  "y": 202,
+  "confidence": 0.995132,
+  "num_segments": 1
+ },
+ {
+  "text": "행정복지선",
+  "x": 212,
+  "y": 202,
+  "confidence": 0.975939,
+  "num_segments": 1
+ },
+ {
+  "text": "로미오모텔",
+  "x": 433,
+  "y": 203,
+  "confidence": 0.989149,
+  "num_segments": 1
+ },
+ {
+  "text": "메가박스",
+  "x": 531,
+  "y": 205,
+  "confidence": 0.994377,
+  "num_segments": 1
+ },
+ {
+  "text": "복지센터",
+  "x": 21,
+  "y": 214,
+  "confidence": 0.984713,
+  "num_segments": 1
+ },
+ {
+  "text": "철우아파트",
+  "x": 389,
+  "y": 224,
+  "confidence": 0.992917,
+  "num_segments": 1
+ },
+ {
+  "text": "10km출",
+  "x": 692,
+  "y": 227,
+  "confidence": 0.993708,
+  "num_segments": 1
+ },
+ {
+  "text": "홈플러스스",
+  "x": 482,
+  "y": 244,
+  "confidence": 0.905966,
+  "num_segments": 1
+ },
+ {
+  "text": "풍덕공해",
+  "x": 240,
+  "y": 248,
+  "confidence": 0.810442,
+  "num_segments": 1
+ },
+ {
+  "text": "그호아파트",
+  "x": 397,
+  "y": 253,
+  "confidence": 0.806445,
+  "num_segments": 1
+ },
+ {
+  "text": "순천오천1차",
+  "x": 121,
+  "y": 259,
+  "confidence": 0.997089,
+  "num_segments": 1
+ },
+ {
+  "text": "스페셜",
+  "x": 486,
+  "y": 259,
+  "confidence": 0.996224,
+  "num_segments": 1
+ },
+ {
+  "text": "우아파",
+  "x": 146,
+  "y": 271,
+  "confidence": 0.963186,
+  "num_segments": 1
+ },
+ {
+  "text": "아파트",
+  "x": 156,
+  "y": 271,
+  "confidence": 0.809783,
+  "num_segments": 1
+ },
+ {
+  "text": "호반베르디움",
+  "x": 98,
+  "y": 272,
+  "confidence": 0.905262,
+  "num_segments": 1
+ },
+ {
+  "text": "니웃아",
+  "x": 133,
+  "y": 272,
+  "confidence": 0.715984,
+  "num_segments": 1
+ },
+ {
+  "text": "순천남산",
+  "x": 206,
+  "y": 273,
+  "confidence": 0.99828,
+  "num_segments": 1
+ },
+ {
+  "text": "한신아파트",
+  "x": 337,
+  "y": 279,
+  "confidence": 0.993707,
+  "num_segments": 1
+ },
+ {
+  "text": "율산에",
+  "x": 895,
+  "y": 282,
+  "confidence": 0.936492,
+  "num_segments": 1
+ },
+ {
+  "text": "옥계서원",
+  "x": 652,
+  "y": 288,
+  "confidence": 0.863069,
+  "num_segments": 1
+ },
+ {
+  "text": "저어는",
+  "x": 255,
+  "y": 292,
+  "confidence": 0.915536,
+  "num_segments": 1
+ },
+ {
+  "text": "!어울림",
+  "x": 266,
+  "y": 292,
+  "confidence": 0.893803,
+  "num_segments": 1
+ },
+ {
+  "text": "국리",
+  "x": 279,
+  "y": 292,
+  "confidence": 0.717013,
+  "num_segments": 1
+ },
+ {
+  "text": "갈때만이",
+  "x": 576,
+  "y": 316,
+  "confidence": 0.993241,
+  "num_segments": 1
+ },
+ {
+  "text": "2천2차호반베르디",
+  "x": 38,
+  "y": 330,
+  "confidence": 0.948217,
+  "num_segments": 1
+ },
+ {
+  "text": "몰루시안아파트",
+  "x": 595,
+  "y": 331,
+  "confidence": 0.827949,
+  "num_segments": 1
+ },
+ {
+  "text": "코아루",
+  "x": 894,
+  "y": 332,
+  "confidence": 0.998779,
+  "num_segments": 1
+ },
+ {
+  "text": "글마실내",
+  "x": 745,
+  "y": 334,
+  "confidence": 0.786014,
+  "num_segments": 1
+ },
+ {
+  "text": "그리파크아파트",
+  "x": 61,
+  "y": 344,
+  "confidence": 0.974367,
+  "num_segments": 1
+ },
+ {
+  "text": "린아파트",
+  "x": 212,
+  "y": 344,
+  "confidence": 0.968997,
+  "num_segments": 1
+ },
+ {
+  "text": "체육관",
+  "x": 736,
+  "y": 346,
+  "confidence": 0.996025,
+  "num_segments": 1
+ },
+ {
+  "text": "순천그",
+  "x": 425,
+  "y": 354,
+  "confidence": 0.999655,
+  "num_segments": 1
+ },
+ {
+  "text": "처그래드파크자이아파트",
+  "x": 481,
+  "y": 354,
+  "confidence": 0.928441,
+  "num_segments": 1
+ },
+ {
+  "text": "세영더초은",
+  "x": 642,
+  "y": 361,
+  "confidence": 0.985,
+  "num_segments": 1
+ },
+ {
+  "text": "년07월예정)",
+  "x": 501,
+  "y": 367,
+  "confidence": 0.997899,
+  "num_segments": 1
+ },
+ {
+  "text": "스타벅스",
+  "x": 780,
+  "y": 373,
+  "confidence": 0.999094,
+  "num_segments": 1
+ },
+ {
+  "text": "'아파트",
+  "x": 638,
+  "y": 375,
+  "confidence": 0.983001,
+  "num_segments": 1
+ },
+ {
+  "text": "순천오천사랑으로",
+  "x": 50,
+  "y": 383,
+  "confidence": 0.995511,
+  "num_segments": 1
+ },
+ {
+  "text": "택지개발",
+  "x": 131,
+  "y": 385,
+  "confidence": 0.94849,
+  "num_segments": 1
+ },
+ {
+  "text": "지개박지구",
+  "x": 154,
+  "y": 385,
+  "confidence": 0.995241,
+  "num_segments": 1
+ },
+ {
+  "text": "순처마국",
+  "x": 315,
+  "y": 390,
+  "confidence": 0.98261,
+  "num_segments": 1
+ },
+ {
+  "text": "만국가정",
+  "x": 335,
+  "y": 390,
+  "confidence": 0.999026,
+  "num_segments": 1
+ },
+ {
+  "text": "가정원",
+  "x": 352,
+  "y": 390,
+  "confidence": 0.999585,
+  "num_segments": 1
+ },
+ {
+  "text": "정원",
+  "x": 363,
+  "y": 390,
+  "confidence": 0.852937,
+  "num_segments": 1
+ },
+ {
+  "text": "국민연",
+  "x": 707,
+  "y": 400,
+  "confidence": 0.997744,
+  "num_segments": 1
+ },
+ {
+  "text": "피오레아파트",
+  "x": 565,
+  "y": 402,
+  "confidence": 0.999356,
+  "num_segments": 1
+ },
+ {
+  "text": "그리아일랜드",
+  "x": 328,
+  "y": 404,
+  "confidence": 0.98656,
+  "num_segments": 1
+ },
+ {
+  "text": "천그린광장",
+  "x": 253,
+  "y": 424,
+  "confidence": 0.996028,
+  "num_segments": 1
+ },
+ {
+  "text": "경관정원",
+  "x": 378,
+  "y": 440,
+  "confidence": 0.998501,
+  "num_segments": 1
+ },
+ {
+  "text": "순천오천골드",
+  "x": 119,
+  "y": 443,
+  "confidence": 0.938558,
+  "num_segments": 1
+ },
+ {
+  "text": "골드",
+  "x": 150,
+  "y": 443,
+  "confidence": 0.992246,
+  "num_segments": 1
+ },
+ {
+  "text": "소안마들",
+  "x": 893,
+  "y": 451,
+  "confidence": 0.932447,
+  "num_segments": 1
+ },
+ {
+  "text": "풍덕동",
+  "x": 438,
+  "y": 452,
+  "confidence": 0.993566,
+  "num_segments": 1
+ },
+ {
+  "text": "글래스아파트",
+  "x": 118,
+  "y": 458,
+  "confidence": 0.940985,
+  "num_segments": 1
+ },
+ {
+  "text": "보아파트",
+  "x": 23,
+  "y": 460,
+  "confidence": 0.996506,
+  "num_segments": 1
+ },
+ {
+  "text": "전라남도교육청순천",
+  "x": 583,
+  "y": 494,
+  "confidence": 0.987335,
+  "num_segments": 1
+ },
+ {
+  "text": "순천만",
+  "x": 637,
+  "y": 494,
+  "confidence": 0.996801,
+  "num_segments": 1
+ },
+ {
+  "text": "생태문화",
+  "x": 576,
+  "y": 508,
+  "confidence": 0.998828,
+  "num_segments": 1
+ },
+ {
+  "text": "|문화교육원",
+  "x": 608,
+  "y": 508,
+  "confidence": 0.941729,
+  "num_segments": 1
+ },
+ {
+  "text": "리채파크원",
+  "x": 153,
+  "y": 509,
+  "confidence": 0.98157,
+  "num_segments": 1
+ },
+ {
+  "text": "아파트",
+  "x": 13,
+  "y": 510,
+  "confidence": 0.84085,
+  "num_segments": 1
+ },
+ {
+  "text": "어린이동물원",
+  "x": 334,
+  "y": 518,
+  "confidence": 0.995039,
+  "num_segments": 1
+ },
+ {
+  "text": "아파트",
+  "x": 134,
+  "y": 522,
+  "confidence": 0.997508,
+  "num_segments": 1
+ },
+ {
+  "text": "스처마",
+  "x": 265,
+  "y": 539,
+  "confidence": 0.938509,
+  "num_segments": 1
+ },
+ {
+  "text": "청암대학교",
+  "x": 64,
+  "y": 544,
+  "confidence": 0.994173,
+  "num_segments": 1
+ },
+ {
+  "text": "구가저워",
+  "x": 260,
+  "y": 552,
+  "confidence": 0.881161,
+  "num_segments": 1
+ },
+ {
+  "text": "윤천호수정원",
+  "x": 477,
+  "y": 557,
+  "confidence": 0.943775,
+  "num_segments": 1
+ },
+ {
+  "text": "순천청암",
+  "x": 50,
+  "y": 584,
+  "confidence": 0.93281,
+  "num_segments": 1
+ },
+ {
+  "text": "순천영일수신",
+  "x": 878,
+  "y": 585,
+  "confidence": 0.928098,
+  "num_segments": 1
+ },
+ {
+  "text": "정원역",
+  "x": 325,
+  "y": 600,
+  "confidence": 0.998921,
+  "num_segments": 1
+ },
+ {
+  "text": "청미래3차",
+  "x": 169,
+  "y": 601,
+  "confidence": 0.993569,
+  "num_segments": 1
+ },
+ {
+  "text": "아파트",
+  "x": 156,
+  "y": 614,
+  "confidence": 0.992306,
+  "num_segments": 1
+ }
+]
