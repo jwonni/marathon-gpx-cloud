@@ -23,6 +23,7 @@ import time
 from pathlib import Path
 
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
+from prometheus_client import Counter, Histogram, make_asgi_app
 
 from src.config import Config
 from src.georeferencing.ocr import load_paddle_ocr, run_ocr
@@ -34,9 +35,16 @@ for _name in ("ocr_service", "ocr", "src"):
 log = logging.getLogger("ocr_service")
 
 app = FastAPI(title="Marathon OCR Service")
+app.mount("/metrics", make_asgi_app())   # Prometheus 수집용
 
 # PaddleOCR 예측기는 동시 호출에 안전하다고 보장되지 않는다. GPU 하나에서 요청을 순차 처리한다.
 _ocr_lock = threading.Lock()
+
+_BUCKETS = (0.5, 1, 2, 5, 10, 15, 20, 30, 60, 120, 300)
+OCR_SECONDS = Histogram("marathon_ocr_service_seconds", "OCR 처리 시간 (대기 제외)", buckets=_BUCKETS)
+# 순차 처리라 동시 요청이 몰리면 여기서 줄을 선다 → 이 값이 커지면 OCR 컨테이너를 늘릴 신호
+OCR_QUEUE_WAIT_SECONDS = Histogram("marathon_ocr_service_queue_wait_seconds", "OCR 락 대기 시간", buckets=_BUCKETS)
+OCR_FAILURES = Counter("marathon_ocr_service_failures_total", "OCR 처리 실패 수")
 
 
 @app.on_event("startup")
@@ -72,13 +80,16 @@ def ocr_endpoint(file: UploadFile = File(...), hisam: str = Form(...)):
 
         t = time.perf_counter()
         with _ocr_lock:
-            results = run_ocr(payload, crop_dir)
+            OCR_QUEUE_WAIT_SECONDS.observe(time.perf_counter() - t)
+            with OCR_SECONDS.time():
+                results = run_ocr(payload, crop_dir)
         log.info("[ocr_service] polygons=%s texts=%d elapsed=%.2fs device=%s",
                  payload.get("num_words"), len(results), time.perf_counter() - t, Config.PADDLE_DEVICE)
         return {"ocr_results": results}
     except HTTPException:
         raise
     except Exception as exc:
+        OCR_FAILURES.inc()
         log.exception("[ocr_service] OCR 실패")
         raise HTTPException(status_code=500, detail=str(exc))
     finally:

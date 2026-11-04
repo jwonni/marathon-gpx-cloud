@@ -1,0 +1,13 @@
+# Prometheus 수집 설정: 15초마다 앱·OCR 서비스의 /metrics 를 읽어 간다 (pull 방식)
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: app            # FastAPI 앱 (Hi-SAM, 지리좌표, GPX)
+    static_configs:
+      - targets: ["app:8010"]
+
+  - job_name: ocr            # OCR 서비스 (PaddleOCR)
+    static_configs:
+      - targets: ["ocr:8020"]

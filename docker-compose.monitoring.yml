@@ -1,0 +1,39 @@
+# 모니터링: Prometheus + Grafana (앱·OCR 서비스와 같은 compose 네트워크에서 동작)
+#
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml -f docker-compose.monitoring.yml up -d
+#   → Grafana    http://localhost:3000  (대시보드: marathon-gpx 폴더)
+#   → Prometheus http://localhost:9090
+#
+# 포트는 127.0.0.1 에만 열어 이 PC 에서만 접속된다
+
+services:
+  prometheus:
+    image: prom/prometheus:v2.55.1
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.retention.time=7d
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    ports:
+      - "127.0.0.1:9090:9090"
+
+  grafana:
+    image: grafana/grafana:11.3.0
+    environment:
+      # 로컬 확인용: 로그인 없이 보기 전용으로 접속. 외부에 열 때는 끄고 관리자 비밀번호를 설정할 것
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/marathon.json
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana-data:/var/lib/grafana
+    ports:
+      - "127.0.0.1:3000:3000"
+    depends_on:
+      - prometheus
+
+volumes:
+  prometheus-data:
+  grafana-data:

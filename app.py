@@ -30,6 +30,9 @@ from fastapi.responses import FileResponse, JSONResponse
 from PIL import Image, ImageDraw
 from pydantic import BaseModel
 
+from prometheus_client import make_asgi_app
+
+from src import metrics as M
 from src.config import Config
 from src.config import (
     AREA_THRESH,
@@ -60,6 +63,9 @@ static_dir = Path(__file__).parent / "static"
 if static_dir.exists():
     app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
 
+# Prometheus 수집용 (src/metrics.py). Prometheus 가 주기적으로 읽어 간다
+app.mount("/metrics", make_asgi_app())
+
 
 @app.middleware("http")
 async def log_resource_usage(request, call_next):
@@ -86,8 +92,10 @@ async def log_resource_usage(request, call_next):
     sampler.start()
 
     t0 = time.perf_counter()
+    status = 500
     try:
         response = await call_next(request)
+        status = response.status_code
     finally:
         elapsed = time.perf_counter() - t0
         stop_event.set()
@@ -103,6 +111,8 @@ async def log_resource_usage(request, call_next):
             request.url.path, elapsed,
             peak_rss[0], peak_rss[0] - rss_before, vram_peak, cpu_pct,
         )
+        M.REQUEST_SECONDS.labels(request.url.path, str(status)).observe(elapsed)
+        M.REQUEST_VRAM_PEAK_BYTES.labels(request.url.path).set(vram_peak * 1024**2)
     return response
 
 
@@ -512,6 +522,13 @@ async def convert_gpx(req: ConvertGPXRequest):
             start, end, path, pixel_to_geo=pixel_to_geo
         )
 
+        # 지리좌표 GPX 의 경로 길이 — 변환식이 무너지면 수천 km 가 나온다 (decision-log 22·25번)
+        if pixel_to_geo is not None and len(path) > 1:
+            route_km = M.route_length_km(path, pixel_to_geo)
+            M.GPX_ROUTE_KM.observe(route_km)
+            if route_km > M.MAX_HEALTHY_ROUTE_KM:
+                M.GEOREF_SUSPICIOUS.labels("route_too_long").inc()
+
         return JSONResponse({
             "status": "success",
             "gpx_content": gpx_content,
@@ -736,6 +753,7 @@ async def run_ocr_endpoint(file: UploadFile = File(...)):
     contents = await file.read()
     suffix   = Path(file.filename).suffix if file.filename else ".jpg"
     tmp_path = crop_dir = None
+    stage    = "prepare"                     # 실패 지표에 어느 단계에서 실패했는지 남긴다
 
     try:
         with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
@@ -745,10 +763,14 @@ async def run_ocr_endpoint(file: UploadFile = File(...)):
 
         logger = logging.getLogger("run_ocr")
         logger.info("[run_ocr] Hi-SAM 추론 시작")
-        hisam_payload = run_hisam_to_json(tmp_path)
+        stage = "hisam"
+        with M.STAGE_SECONDS.labels("hisam").time():
+            hisam_payload = run_hisam_to_json(tmp_path)
         logger.info("[run_ocr] Hi-SAM 완료: polygon %d개", hisam_payload.get("num_words", 0))
 
-        ocr_results = run_ocr_auto(hisam_payload, crop_dir)
+        stage = "ocr"
+        with M.STAGE_SECONDS.labels("ocr").time():
+            ocr_results = run_ocr_auto(hisam_payload, crop_dir)
         logger.info("[run_ocr] OCR 완료: %d개 텍스트", len(ocr_results))
 
         category_pixels = classify_ocr_to_categories(ocr_results)
@@ -765,6 +787,7 @@ async def run_ocr_endpoint(file: UploadFile = File(...)):
     except HTTPException:
         raise
     except Exception as e:
+        M.STAGE_FAILURES.labels(stage).inc()
         print(f"[error] run_ocr: {e}\n{traceback.format_exc()}")
         raise HTTPException(status_code=500, detail=str(e))
     finally:
@@ -873,6 +896,14 @@ async def run_georeference_endpoint(
         errors   = tf.reprojection_errors(anchors_final)
         mean_err = sum(errors) / len(errors)
 
+        # 결과 품질 지표 — 응답은 그대로 두고, 기준을 벗어난 "성공"을 따로 센다 (조용한 실패 감시)
+        M.GEOREF_ANCHORS.observe(len(anchors_final))
+        M.GEOREF_REPROJ_ERROR_PX.observe(mean_err)
+        if len(anchors_final) < M.MIN_HEALTHY_ANCHORS:
+            M.GEOREF_SUSPICIOUS.labels("few_anchors").inc()
+        if max(errors) > Config.HOMOGRAPHY_MAX_ERROR_PX:
+            M.GEOREF_SUSPICIOUS.labels("error_over_threshold").inc()
+
         # 앵커 오버레이 이미지 생성
         anchor_overlay_b64 = None
         try:
@@ -919,6 +950,7 @@ async def run_georeference_endpoint(
     except HTTPException:
         raise
     except Exception as e:
+        M.STAGE_FAILURES.labels("georef").inc()
         print(f"[error] run_georeference: {e}\n{traceback.format_exc()}")
         raise HTTPException(status_code=500, detail=str(e))
     finally:

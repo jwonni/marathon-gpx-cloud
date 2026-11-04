@@ -1,0 +1,684 @@
+{
+ "uid": "marathon-gpx",
+ "title": "marathon-gpx 서비스 운영",
+ "tags": [
+  "marathon-gpx"
+ ],
+ "timezone": "browser",
+ "schemaVersion": 39,
+ "version": 1,
+ "refresh": "30s",
+ "time": {
+  "from": "now-3h",
+  "to": "now"
+ },
+ "panels": [
+  {
+   "id": 1,
+   "type": "stat",
+   "title": "서비스 상태",
+   "description": "Prometheus 가 /metrics 를 읽지 못하면 0 (다운)",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "gridPos": {
+    "x": 0,
+    "y": 0,
+    "w": 6,
+    "h": 4
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "up{job=\"app\"}",
+     "legendFormat": "앱",
+     "refId": "A"
+    },
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "up{job=\"ocr\"}",
+     "legendFormat": "OCR",
+     "refId": "B"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "red",
+        "value": null
+       },
+       {
+        "color": "green",
+        "value": 1
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "colorMode": "background",
+    "graphMode": "none",
+    "textMode": "value_and_name"
+   }
+  },
+  {
+   "id": 2,
+   "type": "stat",
+   "title": "조용한 실패 (성공 응답이지만 품질 기준 밖)",
+   "description": "앵커 8개 미만, 재투영 오차 기준 초과, GPX 경로 100km 초과 (decision-log 22·25번 사례 기준)",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "gridPos": {
+    "x": 6,
+    "y": 0,
+    "w": 6,
+    "h": 4
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "sum(increase(marathon_georef_suspicious_total[$__range])) or vector(0)",
+     "legendFormat": "건수",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "decimals": 0,
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "green",
+        "value": null
+       },
+       {
+        "color": "red",
+        "value": 1
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "colorMode": "background",
+    "graphMode": "none",
+    "textMode": "value_and_name"
+   }
+  },
+  {
+   "id": 3,
+   "type": "stat",
+   "title": "단계별 실패",
+   "description": "",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "gridPos": {
+    "x": 12,
+    "y": 0,
+    "w": 6,
+    "h": 4
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "sum(increase(marathon_stage_failures_total[$__range])) or vector(0)",
+     "legendFormat": "앱",
+     "refId": "A"
+    },
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "sum(increase(marathon_ocr_service_failures_total[$__range])) or vector(0)",
+     "legendFormat": "OCR 서비스",
+     "refId": "B"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "decimals": 0,
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "green",
+        "value": null
+       },
+       {
+        "color": "red",
+        "value": 1
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "colorMode": "background",
+    "graphMode": "none",
+    "textMode": "value_and_name"
+   }
+  },
+  {
+   "id": 4,
+   "type": "stat",
+   "title": "처리한 지도 수",
+   "description": "",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "gridPos": {
+    "x": 18,
+    "y": 0,
+    "w": 6,
+    "h": 4
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "sum(increase(marathon_request_seconds_count{path=\"/api/run_ocr\"}[$__range]))",
+     "legendFormat": "run_ocr",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "decimals": 0,
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "blue",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "colorMode": "background",
+    "graphMode": "none",
+    "textMode": "value_and_name"
+   }
+  },
+  {
+   "id": 5,
+   "type": "timeseries",
+   "title": "단계별 평균 처리 시간",
+   "description": "최근 15분 평균. stage=ocr 과 ocr_service 의 차이 = 컨테이너 간 HTTP 비용",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "gridPos": {
+    "x": 0,
+    "y": 4,
+    "w": 12,
+    "h": 8
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "sum by (stage) (increase(marathon_stage_seconds_sum[15m])) / sum by (stage) (increase(marathon_stage_seconds_count[15m]))",
+     "legendFormat": "{{stage}}",
+     "refId": "A"
+    },
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "sum(increase(marathon_ocr_service_seconds_sum[15m])) / sum(increase(marathon_ocr_service_seconds_count[15m]))",
+     "legendFormat": "ocr_service (서비스 내부)",
+     "refId": "B"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "s",
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 2,
+      "pointSize": 5,
+      "showPoints": "always",
+      "spanNulls": true
+     }
+    },
+    "overrides": []
+   },
+   "options": {}
+  },
+  {
+   "id": 6,
+   "type": "timeseries",
+   "title": "API 처리 시간 p95",
+   "description": "",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "gridPos": {
+    "x": 12,
+    "y": 4,
+    "w": 12,
+    "h": 8
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "histogram_quantile(0.95, sum by (le, path) (increase(marathon_request_seconds_bucket{path=~\"/api/(run_ocr|run_georeference|predict)\"}[15m])))",
+     "legendFormat": "{{path}}",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "s",
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 2,
+      "pointSize": 5,
+      "showPoints": "always",
+      "spanNulls": true
+     }
+    },
+    "overrides": []
+   },
+   "options": {}
+  },
+  {
+   "id": 7,
+   "type": "stat",
+   "title": "최종 앵커 수 (평균)",
+   "description": "8개 미만이면 변환식이 흔들릴 위험",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "gridPos": {
+    "x": 0,
+    "y": 12,
+    "w": 6,
+    "h": 5
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "sum(increase(marathon_georef_anchors_sum[$__range])) / sum(increase(marathon_georef_anchors_count[$__range]))",
+     "legendFormat": "앵커",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "decimals": 1,
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "red",
+        "value": null
+       },
+       {
+        "color": "orange",
+        "value": 6
+       },
+       {
+        "color": "green",
+        "value": 8
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "colorMode": "background",
+    "graphMode": "none",
+    "textMode": "value_and_name"
+   }
+  },
+  {
+   "id": 8,
+   "type": "stat",
+   "title": "평균 재투영 오차",
+   "description": "기준 7px",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "gridPos": {
+    "x": 6,
+    "y": 12,
+    "w": 6,
+    "h": 5
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "sum(increase(marathon_georef_reprojection_error_px_sum[$__range])) / sum(increase(marathon_georef_reprojection_error_px_count[$__range]))",
+     "legendFormat": "오차",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "px",
+     "decimals": 2,
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "green",
+        "value": null
+       },
+       {
+        "color": "orange",
+        "value": 5
+       },
+       {
+        "color": "red",
+        "value": 7
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "colorMode": "background",
+    "graphMode": "none",
+    "textMode": "value_and_name"
+   }
+  },
+  {
+   "id": 9,
+   "type": "stat",
+   "title": "GPX 경로 길이 (평균)",
+   "description": "풀코스도 약 42km. 100km 를 넘으면 변환식 붕괴 의심",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "gridPos": {
+    "x": 12,
+    "y": 12,
+    "w": 6,
+    "h": 5
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "sum(increase(marathon_gpx_route_km_sum[$__range])) / sum(increase(marathon_gpx_route_km_count[$__range]))",
+     "legendFormat": "경로",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "lengthkm",
+     "decimals": 2,
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "green",
+        "value": null
+       },
+       {
+        "color": "orange",
+        "value": 60
+       },
+       {
+        "color": "red",
+        "value": 100
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "colorMode": "background",
+    "graphMode": "none",
+    "textMode": "value_and_name"
+   }
+  },
+  {
+   "id": 10,
+   "type": "timeseries",
+   "title": "조용한 실패 원인별",
+   "description": "",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "gridPos": {
+    "x": 18,
+    "y": 12,
+    "w": 6,
+    "h": 5
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "sum by (reason) (increase(marathon_georef_suspicious_total[15m]))",
+     "legendFormat": "{{reason}}",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 2,
+      "pointSize": 5,
+      "showPoints": "always",
+      "spanNulls": true
+     }
+    },
+    "overrides": []
+   },
+   "options": {}
+  },
+  {
+   "id": 11,
+   "type": "timeseries",
+   "title": "API별 GPU 메모리 최대 사용량 (마지막 요청)",
+   "description": "T4 16GB. 90%(약 14GB)를 넘으면 동시 요청 시 메모리 부족 위험",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "gridPos": {
+    "x": 0,
+    "y": 17,
+    "w": 12,
+    "h": 8
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "marathon_request_vram_peak_bytes{path=~\"/api/(run_ocr|predict|run_georeference)\"}",
+     "legendFormat": "{{path}}",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "bytes",
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 2,
+      "pointSize": 5,
+      "showPoints": "always",
+      "spanNulls": true
+     }
+    },
+    "overrides": []
+   },
+   "options": {}
+  },
+  {
+   "id": 12,
+   "type": "timeseries",
+   "title": "OCR 서비스 대기 시간 p95",
+   "description": "OCR 은 한 번에 하나씩 처리한다. 이 값이 커지면 요청이 줄을 서는 것 → OCR 컨테이너를 늘릴 신호",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "gridPos": {
+    "x": 12,
+    "y": 17,
+    "w": 12,
+    "h": 8
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "histogram_quantile(0.95, sum by (le) (increase(marathon_ocr_service_queue_wait_seconds_bucket[15m])))",
+     "legendFormat": "대기 p95",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "s",
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 2,
+      "pointSize": 5,
+      "showPoints": "always",
+      "spanNulls": true
+     }
+    },
+    "overrides": []
+   },
+   "options": {}
+  }
+ ]
+}

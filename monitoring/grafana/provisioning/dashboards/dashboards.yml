@@ -1,0 +1,8 @@
+# monitoring/grafana/dashboards 의 JSON 을 대시보드로 자동 등록 (대시보드도 코드로 관리)
+apiVersion: 1
+providers:
+  - name: marathon
+    folder: marathon-gpx
+    type: file
+    options:
+      path: /var/lib/grafana/dashboards

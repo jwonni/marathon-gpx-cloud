@@ -6,6 +6,8 @@ pydantic>=2.0.0
 python-multipart>=0.0.5
 # OCR 서비스 호출 (src/georeferencing/ocr_client.py)
 requests>=2.31
+# Prometheus /metrics (src/metrics.py)
+prometheus-client>=0.20
 
 # Numerical / image processing
 numpy>=1.21.0
