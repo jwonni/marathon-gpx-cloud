@@ -17,7 +17,7 @@ from pathlib import Path
 
 import requests
 
-APP = "http://localhost:8010"
+APP = os.environ.get("APP_URL", "http://localhost:8010")   # EC2 측정 시 http://<IP>:8010
 ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -58,9 +58,9 @@ def gpx_points(gpx):
     return [(float(a), float(b)) for a, b in re.findall(r'lat="([-\d.]+)"\s+lon="([-\d.]+)"', gpx)]
 
 
-def main(image, start_name, end_name):
+def main(image, start_name=None, end_name=None):
     img = Path(image)
-    out = ROOT / "bench" / "e2e" / img.stem
+    out = ROOT / "bench" / "e2e" / (img.stem + os.environ.get("OUT_TAG", ""))   # 예: OUT_TAG=-gpu
     out.mkdir(parents=True, exist_ok=True)
     raw = img.read_bytes()
     data_url = "data:image/png;base64," + base64.b64encode(raw).decode()
@@ -115,7 +115,18 @@ def main(image, start_name, end_name):
         gpx = dg["gpx_content"]
         (out / "route.gpx").write_text(gpx, encoding="utf-8")
         pts = gpx_points(gpx)
+        route_len = sum(dist_m(a, b) for a, b in zip(pts, pts[1:]))
+        summary.update({"status": d6["status"], "num_anchors": d6["num_anchors"],
+                        "mean_reprojection_error_px": d6["mean_reprojection_error_px"],
+                        "gpx_first": pts[0], "gpx_last": pts[-1], "route_km": round(route_len / 1000, 2),
+                        "anchors": [{k: a[k] for k in ("text", "place", "lat", "lng", "reprojection_error_px")}
+                                    for a in anchors]})
+        if not start_name:                               # 정답 위치를 모르는 지도는 결과만 기록
+            print(f"     GPX 첫 점 {pts[0]}, 끝 점 {pts[-1]}, 총 길이 {route_len / 1000:.2f}km")
+            print(f"     최종 앵커: {[a['place'] for a in anchors]}")
+            start_name = None
 
+    if code6 == 200 and start_name:
         print("\n[2] 정답 비교 (카카오 장소 검색 좌표 기준)")
         truth_s, truth_e = place(start_name), place(end_name)
         ds_s, de_e = dist_m(pts[0], truth_s), dist_m(pts[-1], truth_e)

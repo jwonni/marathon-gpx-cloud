@@ -49,8 +49,8 @@ def main(ocr_path):
     lng_mad = np.median(np.abs(lngs - lng_med)) + 1e-9
     print(f"\n[2] MAD: 중앙값 ({lat_med:.4f}, {lng_med:.4f}) = {city(lat_med, lng_med)}, "
           f"MAD lat {lat_mad:.4f}° (약 {lat_mad * 111:.1f}km) / lng {lng_mad:.4f}° (약 {lng_mad * 91:.1f}km), "
-          f"임계 {Config.KAKAO_MAD_THRESH}배 → 허용 반경 약 lat ±{lat_mad * Config.KAKAO_MAD_THRESH * 111:.1f}km, "
-          f"lng ±{lng_mad * Config.KAKAO_MAD_THRESH * 91:.1f}km")
+          f"임계 {2.0}배 → 허용 반경 약 lat ±{lat_mad * 2.0 * 111:.1f}km, "
+          f"lng ±{lng_mad * 2.0 * 91:.1f}km")
     anchors = AB.build_anchors(cands, key)
     print(f"    MAD + 재검색 후: {len(anchors)}개  도시 분포 {count(anchors)}")
 
