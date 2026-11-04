@@ -58,7 +58,10 @@ class Config:
     HISAM_MODEL_TYPE = "vit_l"          # vit_t / vit_s / vit_b / vit_l / vit_h
 
     # 팀 버전 값으로 복원 (2026-11-03). 1000점·512 해상도에서 masks=0 실패가 57% (decision-log 24번)
-    HISAM_TOTAL_POINTS = 3000
+    # 1500점: GPU 측정에서 3000점과 정확도 차이 없이 Hi-SAM 25.4s → 8.6s (FP16 포함, decision-log 26번)
+    HISAM_TOTAL_POINTS = int(os.environ.get("HISAM_TOTAL_POINTS", "1500"))
+    # GPU 에서 FP16(반정밀도)으로 추론 — T4 Tensor Core 활용, 속도·VRAM 개선. CPU 에서는 무시됨
+    HISAM_FP16 = os.environ.get("HISAM_FP16", "1") == "1"
     HISAM_BATCH_POINTS = 64
     # ViT 입력 해상도 — 1024가 기본. 512로 줄이면 약 4배 빨라지지만 작은 글자를 놓쳐 검출 실패가 늘어난다
     HISAM_INPUT_SIZE = (1024, 1024)
@@ -88,6 +91,11 @@ class Config:
     # ── PaddleOCR ────────────────────────────────────────────────────────────────
     OCR_LANG        = "korean"
     MIN_CONFIDENCE  = 0.7
+    # 인식 전용 모드: Hi-SAM 이 이미 글자 영역을 잘라 주므로 PaddleOCR 의 검출 단계를 건너뛰고
+    # 인식 모델만 배치로 돌린다 (검출이 OCR 시간의 약 90%, decision-log 27번). "0" 이면 기존 파이프라인
+    OCR_REC_ONLY    = os.environ.get("OCR_REC_ONLY", "1") == "1"
+    OCR_REC_MODEL   = "korean_PP-OCRv5_mobile_rec"   # 기존 파이프라인이 쓰던 인식 모델과 같은 것
+    OCR_REC_BATCH   = int(os.environ.get("OCR_REC_BATCH", "32"))
     DROP_EMPTY_TEXT = True
     SORT_BY_COORDS  = True
 

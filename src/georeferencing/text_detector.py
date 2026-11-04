@@ -6,6 +6,7 @@ Hi-SAM 저장소가 Config.HISAM_REPO_DIR에 존재해야 하며,
 """
 from __future__ import annotations
 
+import contextlib
 import json
 import logging
 import os
@@ -144,6 +145,11 @@ def run_hisam_to_json(image_path: str, json_path: str | None = None) -> dict:
     original_cwd = os.getcwd()
 
     is_cuda = torch.cuda.is_available() and Config.DEVICE.type == "cuda"
+    # FP16 은 GPU 에서만 의미가 있다 (CPU 는 기존 FP32 그대로)
+    use_fp16 = is_cuda and Config.HISAM_FP16
+
+    def _amp():
+        return torch.autocast("cuda", dtype=torch.float16) if use_fp16 else contextlib.nullcontext()
 
     def _sync():
         if is_cuda:
@@ -174,12 +180,13 @@ def run_hisam_to_json(image_path: str, json_path: str | None = None) -> dict:
                         time.perf_counter() - t, img_w, img_h)
 
             t = time.perf_counter()
-            amg.set_image(image_rgb)
+            with _amp():
+                amg.set_image(image_rgb)
             _sync()
-            logger.info("[Hi-SAM][timing] set_image=%.3fs", time.perf_counter() - t)
+            logger.info("[Hi-SAM][timing] set_image=%.3fs (fp16=%s)", time.perf_counter() - t, use_fp16)
 
             t = time.perf_counter()
-            with torch.inference_mode():
+            with torch.inference_mode(), _amp():
                 masks, _scores, _affinity = amg.predict(
                     from_low_res    = False,
                     fg_points_num   = Config.HISAM_TOTAL_POINTS,

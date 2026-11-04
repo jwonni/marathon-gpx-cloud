@@ -157,22 +157,38 @@ _paddle_ocr: Any = None
 
 
 def load_paddle_ocr() -> Any:
-    """PaddleOCR 싱글톤 로드 (CPU 고정)."""
+    """PaddleOCR 싱글톤 로드. 인식 전용 모드면 인식 모델(TextRecognition)만 로드한다."""
     global _paddle_ocr
     if _paddle_ocr is None:
         os.environ.setdefault("PADDLE_PDX_DISABLE_MODEL_SOURCE_CHECK", "True")
         import paddle
         paddle.set_flags({"FLAGS_use_mkldnn": False})
         paddle.device.set_device(Config.PADDLE_DEVICE)
-        from paddleocr import PaddleOCR
-        _paddle_ocr = PaddleOCR(
-            lang                         = Config.OCR_LANG,
-            device                       = Config.PADDLE_DEVICE,
-            use_doc_orientation_classify = False,
-            use_doc_unwarping            = False,
-            use_textline_orientation     = False,
-        )
+        if Config.OCR_REC_ONLY:
+            from paddleocr import TextRecognition
+            _paddle_ocr = TextRecognition(model_name=Config.OCR_REC_MODEL, device=Config.PADDLE_DEVICE)
+        else:
+            from paddleocr import PaddleOCR
+            _paddle_ocr = PaddleOCR(
+                lang                         = Config.OCR_LANG,
+                device                       = Config.PADDLE_DEVICE,
+                use_doc_orientation_classify = False,
+                use_doc_unwarping            = False,
+                use_textline_orientation     = False,
+            )
     return _paddle_ocr
+
+
+def run_rec_batch(image_paths: list[str], rec_model: Any) -> dict[str, dict]:
+    """인식 모델로 크롭 여러 장을 한 번에 읽는다 → {경로: run_paddle_on_path 와 같은 형태}."""
+    results: dict[str, dict] = {}
+    for path, r in zip(image_paths, rec_model.predict(input=image_paths, batch_size=Config.OCR_REC_BATCH)):
+        text  = (r["rec_text"] or "").strip()
+        score = float(r["rec_score"])
+        # 크롭 한 장 = 글자 줄 하나로 보고 items 를 하나로 만든다 (후속 병합 로직과 형식을 맞춤)
+        items = [{"text": text, "score": score, "cx": 0.0, "cy": 0.0}] if text else []
+        results[path] = {"text": text or None, "score": score, "items": items}
+    return results
 
 
 def get_field(obj: Any, key: str, default: Any = None) -> Any:
@@ -376,10 +392,18 @@ def run_ocr(json_data: dict, out_dir: str) -> list[dict]:
 
     ocr = load_paddle_ocr()
 
+    if Config.OCR_REC_ONLY:
+        # base·retry 크롭을 모두 모아 한 번에 배치 인식 (크롭마다 검출을 다시 돌리지 않음)
+        paths = [p for rec in prepared_records for p in (rec["paddle_base_path"], rec["paddle_retry_path"])]
+        by_path = run_rec_batch(paths, ocr)
+        run_one = lambda path: by_path[path]  # noqa: E731
+    else:
+        run_one = lambda path: run_paddle_on_path(path, ocr)  # noqa: E731
+
     raw_results: list[dict] = []
     for rec in prepared_records:
-        base_result  = run_paddle_on_path(rec["paddle_base_path"],  ocr)
-        retry_result = run_paddle_on_path(rec["paddle_retry_path"], ocr)
+        base_result  = run_one(rec["paddle_base_path"])
+        retry_result = run_one(rec["paddle_retry_path"])
         best = choose_best_paddle_result([base_result, retry_result])
         raw_results.append(merge_crop_result_to_text_xy(rec, best))
 
