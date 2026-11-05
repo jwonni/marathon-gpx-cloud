@@ -899,7 +899,7 @@ def run_georeference_endpoint(
         errors   = tf.reprojection_errors(anchors_final)
         mean_err = sum(errors) / len(errors)
 
-        # 결과 품질 지표 — 응답은 그대로 두고, 기준을 벗어난 "성공"을 따로 센다 (조용한 실패 감시)
+        # 결과 품질 지표 — 기준 미달 결과를 원인별로 센다 (응답 자체의 실패 처리는 아직 없음)
         M.GEOREF_ANCHORS.observe(len(anchors_final))
         M.GEOREF_REPROJ_ERROR_PX.observe(mean_err)
         if len(anchors_final) < M.MIN_HEALTHY_ANCHORS:

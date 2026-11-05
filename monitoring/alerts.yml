@@ -28,13 +28,13 @@ groups:
 
   - name: marathon-quality
     rules:
-      # 응답은 200 성공인데 결과가 틀린 경우 (decision-log 22·25번: 앵커 6개인데 다른 도시, GPX 수천 km)
-      - alert: SilentGeorefFailure
+      # 변환 행렬 품질이 기준 미달인 결과 (decision-log 22·25번: 앵커 6개인데 다른 도시, GPX 수천 km)
+      - alert: GeorefQualityLow
         expr: sum by (reason) (increase(marathon_georef_suspicious_total[10m])) > 0
         labels:
           severity: warning
         annotations:
-          summary: "성공으로 응답했지만 품질 기준을 벗어난 결과 ({{ $labels.reason }})"
+          summary: "품질 기준 미달 결과 ({{ $labels.reason }})"
           description: "few_anchors: 앵커 8개 미만 / error_over_threshold: 재투영 오차 7px 초과 / route_too_long: GPX 100km 초과"
 
   - name: marathon-capacity

@@ -44,7 +44,7 @@ panels = [
           [target('up{job="app"}', "앱"), target('up{job="ocr"}', "OCR")],
           desc="Prometheus 가 /metrics 를 읽지 못하면 0 (다운)",
           thresholds=[{"color": BAD, "value": None}, {"color": GOOD, "value": 1}]),
-    panel(2, "조용한 실패 (성공 응답이지만 품질 기준 밖)", "stat", 6, 0, 6, 4,
+    panel(2, "품질 기준 미달 결과", "stat", 6, 0, 6, 4,
           [target(f'sum(increase(marathon_georef_suspicious_total{W})) or vector(0)', "건수")],
           desc="앵커 8개 미만, 재투영 오차 기준 초과, GPX 경로 100km 초과 (decision-log 22·25번 사례 기준)",
           thresholds=[{"color": GOOD, "value": None}, {"color": BAD, "value": 1}], decimals=0),
@@ -78,7 +78,7 @@ panels = [
           [target(f'sum(increase(marathon_gpx_route_km_sum{W})) / sum(increase(marathon_gpx_route_km_count{W}))', "경로")],
           unit="lengthkm", desc="풀코스도 약 42km. 100km 를 넘으면 변환식 붕괴 의심",
           thresholds=[{"color": GOOD, "value": None}, {"color": WARN, "value": 60}, {"color": BAD, "value": 100}], decimals=2),
-    panel(10, "조용한 실패 원인별", "timeseries", 18, 12, 6, 5,
+    panel(10, "품질 기준 미달 원인별", "timeseries", 18, 12, 6, 5,
           [target('sum by (reason) (increase(marathon_georef_suspicious_total[15m]))', "{{reason}}")]),
 
     # ── 4행: 자원·용량 ──────────────────────────────────────────────────────────

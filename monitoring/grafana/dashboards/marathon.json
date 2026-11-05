@@ -85,7 +85,7 @@
   {
    "id": 2,
    "type": "stat",
-   "title": "조용한 실패 (성공 응답이지만 품질 기준 밖)",
+   "title": "품질 기준 미달 결과",
    "description": "앵커 8개 미만, 재투영 오차 기준 초과, GPX 경로 100km 초과 (decision-log 22·25번 사례 기준)",
    "datasource": {
     "type": "prometheus",
@@ -561,7 +561,7 @@
   {
    "id": 10,
    "type": "timeseries",
-   "title": "조용한 실패 원인별",
+   "title": "품질 기준 미달 원인별",
    "description": "",
    "datasource": {
     "type": "prometheus",

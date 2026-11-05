@@ -25,7 +25,7 @@ STAGE_FAILURES = Counter(
     "marathon_stage_failures_total", "단계별 실패 수", ["stage"],
 )
 
-# ── 지리좌표 결과 품질: "응답은 성공인데 결과가 틀린" 조용한 실패를 잡기 위한 지표 ────────
+# ── 지리좌표 결과 품질: 변환 행렬이 기준 미달인 결과를 세는 지표 ───────────────────────
 GEOREF_ANCHORS = Histogram(
     "marathon_georef_anchors", "최종 앵커 수",
     buckets=(4, 6, 8, 10, 15, 20, 30, 50),
@@ -35,14 +35,14 @@ GEOREF_REPROJ_ERROR_PX = Histogram(
     buckets=(1, 2, 3, 5, 7, 10, 20, 50),
 )
 GEOREF_SUSPICIOUS = Counter(
-    "marathon_georef_suspicious_total", "성공으로 응답했지만 품질 기준을 벗어난 결과 수", ["reason"],
+    "marathon_georef_suspicious_total", "품질 기준 미달 결과 수", ["reason"],
 )
 GPX_ROUTE_KM = Histogram(
     "marathon_gpx_route_km", "지리좌표로 변환한 GPX 경로 길이(km)",
     buckets=(1, 3, 5, 10, 21, 42, 60, 100, 1000),
 )
 
-# 조용한 실패 판정 기준 (decision-log 22·25번 사례: 앵커 6개·평균 6.5px 인데 다른 도시, 경로 수천 km)
+# 품질 기준 미달 판정 기준 (decision-log 22·25번 사례: 앵커 6개·평균 6.5px 인데 다른 도시, 경로 수천 km)
 MIN_HEALTHY_ANCHORS = 8
 MAX_HEALTHY_ROUTE_KM = 100
 

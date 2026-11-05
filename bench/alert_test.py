@@ -4,7 +4,7 @@
 
 시나리오
   1. OCR 컨테이너 정지 → ServiceDown(job=ocr) firing 까지 시간 → 재시작 → 해제까지 시간
-  2. 품질 기준 밖 결과 주입 → /api/run_georeference 는 200 인데 SilentGeorefFailure 가 firing 되는지
+  2. 품질 기준 밖 결과 주입 → /api/run_georeference 는 200 인데 GeorefQualityLow 가 firing 되는지
      (입력: Hi-SAM 없이 만든 순천 OCR 결과 — decision-log 28번에서 앵커 6개·오차 19px 로 무너졌던 것)
 """
 import json
@@ -57,7 +57,7 @@ compose("start", "ocr")
 t_resolved = wait_for(lambda: alert_state("ServiceDown", job="ocr") == "inactive", 300)
 print(f"    재시작 후 해제까지 {fmt(t_resolved)} (OCR 모델 로드 시간 포함)")
 
-print("[2] 품질 기준 밖 결과 주입 → SilentGeorefFailure")
+print("[2] 품질 기준 밖 결과 주입 → GeorefQualityLow")
 ocr = (ROOT / "bench/e2e/paddle_only/suncheon_ocr.json").read_text(encoding="utf-8")
 with open(ROOT / "bench/e2e/paddle_only/suncheon.png", "rb") as f:
     r = requests.post(f"{APP}/api/run_georeference", files={"file": ("image.png", f, "image/png")},
@@ -65,7 +65,7 @@ with open(ROOT / "bench/e2e/paddle_only/suncheon.png", "rb") as f:
 body = r.json()
 print(f"    API 응답: HTTP {r.status_code}, status={body.get('status')}, 앵커 {body.get('num_anchors')}개, "
       f"평균 오차 {body.get('mean_reprojection_error_px')}px")
-t_silent = wait_for(lambda: alert_state("SilentGeorefFailure") == "firing", 120)
+t_silent = wait_for(lambda: alert_state("GeorefQualityLow") == "firing", 120)
 reasons = sorted({a["labels"].get("reason") for a in requests.get(f"{PROM}/api/v1/alerts", timeout=5).json()["data"]["alerts"]
-                  if a["labels"].get("alertname") == "SilentGeorefFailure"})
-print(f"    SilentGeorefFailure firing 까지 {fmt(t_silent)}, 원인 {reasons}")
+                  if a["labels"].get("alertname") == "GeorefQualityLow"})
+print(f"    GeorefQualityLow firing 까지 {fmt(t_silent)}, 원인 {reasons}")

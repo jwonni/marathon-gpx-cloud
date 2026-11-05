@@ -66,9 +66,9 @@
   <!-- ===================== 분리 후 ===================== -->
   <g transform="translate(0,490)">
   <rect x="20" y="0" width="1160" height="460" rx="16" fill="#F8F9FA"/>
-  <text x="48" y="44" class="h">분리 후</text>
-  <text x="148" y="43" class="s">2026-10-28 · 컨테이너 2개</text>
-  <text x="1150" y="46" text-anchor="end" font-size="16" fill="#6C757D">지도 1장 처리 <tspan font-size="32" font-weight="700" fill="#2B8A3E">25.7초</tspan> <tspan font-size="18" font-weight="700" fill="#2B8A3E">(6.0배)</tspan></text>
+  <text x="48" y="44" class="h">현재</text>
+  <text x="120" y="43" class="s">2026-11-04 · 컨테이너 2개 + 모니터링 · 정확도 검증 완료</text>
+  <text x="1150" y="46" text-anchor="end" font-size="16" fill="#6C757D">지도 1장 처리 <tspan font-size="32" font-weight="700" fill="#2B8A3E">약 17초</tspan> <tspan font-size="18" font-weight="700" fill="#2B8A3E">(약 9배)</tspan></text>
 
   <rect x="48" y="170" width="130" height="64" rx="10" class="box"/>
   <text x="113" y="208" text-anchor="middle" class="row">브라우저</text>
@@ -87,7 +87,7 @@
 
   <rect x="280" y="208" width="340" height="40" rx="6" fill="#F1F3F5"/>
   <text x="296" y="233" class="row">Hi-SAM — 글자 영역 검출</text>
-  <text x="604" y="233" text-anchor="end" class="tag" fill="#1C7ED6">GPU · 6.3s</text>
+  <text x="604" y="233" text-anchor="end" class="tag" fill="#1C7ED6">GPU · FP16 · 9.0s</text>
 
   <rect x="280" y="256" width="340" height="40" rx="6" fill="#FFFFFF" stroke="#CED4DA" stroke-dasharray="4 3"/>
   <text x="296" y="281" class="row" fill="#6C757D">ocr_client — OCR 서비스에 요청</text>
@@ -105,10 +105,10 @@
 
   <rect x="800" y="160" width="310" height="40" rx="6" fill="#EBFBEE" stroke="#2B8A3E" stroke-width="1.5"/>
   <text x="816" y="185" class="row" font-weight="700">PaddleOCR — 글자 인식</text>
-  <text x="1094" y="185" text-anchor="end" class="tag" fill="#2B8A3E">GPU · 17.3s</text>
+  <text x="1094" y="185" text-anchor="end" class="tag" fill="#2B8A3E">GPU · 6.0s</text>
 
   <text x="800" y="230" font-size="13.5" fill="#495057">· torch 없는 별도 이미지 → CUDA 충돌 해소</text>
-  <text x="800" y="252" font-size="13.5" fill="#495057">· OCR_SERVICE_URL 이 비면 앱 안에서 실행</text>
+  <text x="800" y="252" font-size="13.5" fill="#495057">· 검출은 Hi-SAM 결과 사용, 인식만 32장씩 배치</text>
   <text x="800" y="274" font-size="13.5" fill="#495057">· 분리 전후 OCR 결과 106개 완전 일치 검증</text>
 
   <rect x="300" y="364" width="230" height="52" rx="10" class="box"/>
@@ -118,10 +118,17 @@
   <rect x="570" y="364" width="230" height="52" rx="10" class="box"/>
   <text x="685" y="395" text-anchor="middle" class="row">카카오 로컬 API · 좌표 검색</text>
   <path d="M600,306 L600,336 L685,336 L685,362" stroke="#495057" stroke-width="1.5" fill="none" marker-end="url(#arr)"/>
+
+  <!-- 모니터링: Prometheus 가 두 컨테이너의 /metrics 를 읽어 감 -->
+  <rect x="840" y="364" width="290" height="52" rx="10" fill="#FFF9DB" stroke="#F59F00" stroke-width="1.5"/>
+  <text x="985" y="386" text-anchor="middle" font-size="14" font-weight="700" fill="#212529">Prometheus · Grafana · Alertmanager</text>
+  <text x="985" y="405" text-anchor="middle" font-size="12.5" fill="#495057">/metrics 15초 수집 · 알람 6개 · 결과 품질 지표</text>
+  <path d="M640,300 L720,300 L720,342 L880,342 L880,362" stroke="#F59F00" stroke-width="1.5" stroke-dasharray="5 4" fill="none" marker-end="url(#arr)"/>
+  <line x1="985" y1="306" x2="985" y2="362" stroke="#F59F00" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#arr)"/>
   </g>
 
   <!-- ===================== 처리 시간 비교 ===================== -->
-  <text x="48" y="1000" class="lb">지도 1장 처리 시간 <tspan class="s" font-weight="400">같은 g4dn.xlarge · 같은 지도(911×642) · 앱 [resource] 로그 기준</tspan></text>
+  <text x="48" y="1000" class="lb">지도 1장 처리 시간 <tspan class="s" font-weight="400">같은 g4dn.xlarge · 같은 지도(911×642) · 현재 값은 정확도 확보 설정 기준 (순천 9.5km 왕복 3/3 일치)</tspan></text>
 
   <!-- 1초 = 5.84px, 막대 시작 x=200 -->
   <text x="48" y="1040" class="lb">분리 전</text>
@@ -131,12 +138,12 @@
   <rect x="246.7" y="1024" width="851" height="44" fill="#FF8787"/>
   <text x="1086" y="1052" text-anchor="end" font-size="14" font-weight="700" fill="#FFFFFF">PaddleOCR (CPU) 145.7초</text>
 
-  <text x="48" y="1114" class="lb">분리 후</text>
-  <text x="48" y="1134" font-size="14" fill="#2B8A3E" font-weight="700">25.7초</text>
-  <rect x="200" y="1098" width="11.7" height="44" fill="#ADB5BD"/>
-  <rect x="211.7" y="1098" width="36.8" height="44" fill="#4DABF7"/>
-  <rect x="248.5" y="1098" width="101.6" height="44" fill="#69DB7C"/>
-  <text x="364" y="1126" font-size="14" fill="#343A40"><tspan font-weight="700" fill="#2B8A3E">PaddleOCR (GPU) 17.3초</tspan> · Hi-SAM 6.3초 · 기타 2.1초</text>
+  <text x="48" y="1114" class="lb">현재</text>
+  <text x="48" y="1134" font-size="14" fill="#2B8A3E" font-weight="700">17.1초</text>
+  <rect x="200" y="1098" width="12.3" height="44" fill="#ADB5BD"/>
+  <rect x="212.3" y="1098" width="52.6" height="44" fill="#4DABF7"/>
+  <rect x="264.9" y="1098" width="35.0" height="44" fill="#69DB7C"/>
+  <text x="314" y="1126" font-size="14" fill="#343A40">Hi-SAM 9.0초 (FP16·1500점) · <tspan font-weight="700" fill="#2B8A3E">PaddleOCR (GPU, 인식 전용) 6.0초</tspan> · 기타 2.1초</text>
 
   <rect x="200" y="1166" width="14" height="14" fill="#FF8787"/><text x="220" y="1178" class="s">OCR (CPU)</text>
   <rect x="320" y="1166" width="14" height="14" fill="#69DB7C"/><text x="340" y="1178" class="s">OCR (GPU)</text>
