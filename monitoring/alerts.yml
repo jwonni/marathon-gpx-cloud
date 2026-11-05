@@ -1,0 +1,56 @@
+# Prometheus 알람 규칙. 조건이 for 기간 동안 계속되면 firing → Alertmanager 로 전달
+groups:
+  - name: marathon-availability
+    rules:
+      - alert: ServiceDown
+        expr: up{job=~"app|ocr"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "{{ $labels.job }} 서비스가 1분 넘게 응답하지 않음"
+          description: "Prometheus 가 /metrics 를 읽지 못하고 있다. 컨테이너 상태와 로그를 확인할 것"
+
+      - alert: StageFailures
+        expr: sum by (stage) (increase(marathon_stage_failures_total[10m])) > 0
+        labels:
+          severity: warning
+        annotations:
+          summary: "{{ $labels.stage }} 단계에서 최근 10분간 실패 발생"
+          description: "hisam 실패는 글자 영역을 찾지 못한 경우(decision-log 24번), georef 실패는 지리좌표 계산 오류"
+
+      - alert: OcrServiceFailures
+        expr: increase(marathon_ocr_service_failures_total[10m]) > 0
+        labels:
+          severity: warning
+        annotations:
+          summary: "OCR 서비스에서 최근 10분간 실패 발생"
+
+  - name: marathon-quality
+    rules:
+      # 응답은 200 성공인데 결과가 틀린 경우 (decision-log 22·25번: 앵커 6개인데 다른 도시, GPX 수천 km)
+      - alert: SilentGeorefFailure
+        expr: sum by (reason) (increase(marathon_georef_suspicious_total[10m])) > 0
+        labels:
+          severity: warning
+        annotations:
+          summary: "성공으로 응답했지만 품질 기준을 벗어난 결과 ({{ $labels.reason }})"
+          description: "few_anchors: 앵커 8개 미만 / error_over_threshold: 재투영 오차 7px 초과 / route_too_long: GPX 100km 초과"
+
+  - name: marathon-capacity
+    rules:
+      - alert: GpuMemoryHigh
+        expr: max(marathon_request_vram_peak_bytes) > 14e9
+        labels:
+          severity: warning
+        annotations:
+          summary: "GPU 메모리 사용량 14GB 초과 (T4 16GB)"
+          description: "동시 요청이 들어오면 메모리 부족으로 실패할 수 있다 (decision-log 25번: FP32 3000점에서 14.6GB 관측)"
+
+      - alert: OcrQueueBacklog
+        expr: histogram_quantile(0.95, sum by (le) (increase(marathon_ocr_service_queue_wait_seconds_bucket[10m]))) > 10
+        labels:
+          severity: warning
+        annotations:
+          summary: "OCR 요청 대기 p95 10초 초과"
+          description: "OCR 은 한 번에 하나씩 처리한다. 요청이 줄을 서고 있으므로 OCR 컨테이너를 늘릴 것"

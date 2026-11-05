@@ -1,0 +1,12 @@
+# Alertmanager: 같은 알람을 묶고 반복 전송을 조절한다.
+# 지금은 전달 채널 없이 UI(http://localhost:9093)에서만 확인한다.
+# Slack·Discord·메일로 보내려면 receivers 에 웹훅을 추가한다 (웹훅 URL 은 비밀값이므로 git 에 넣지 않음)
+route:
+  receiver: default
+  group_by: ["alertname"]
+  group_wait: 10s
+  group_interval: 1m
+  repeat_interval: 1h
+
+receivers:
+  - name: default

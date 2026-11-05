@@ -2,7 +2,8 @@
 #
 #   docker compose -f docker-compose.yml -f docker-compose.dev.yml -f docker-compose.monitoring.yml up -d
 #   → Grafana    http://localhost:3000  (대시보드: marathon-gpx 폴더)
-#   → Prometheus http://localhost:9090
+#   → Prometheus http://localhost:9090  (Alerts 탭: 알람 규칙과 상태)
+#   → Alertmanager http://localhost:9093 (발생한 알람)
 #
 # 포트는 127.0.0.1 에만 열어 이 PC 에서만 접속된다
 
@@ -14,9 +15,21 @@ services:
       - --storage.tsdb.retention.time=7d
     volumes:
       - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring/alerts.yml:/etc/prometheus/alerts.yml:ro
       - prometheus-data:/prometheus
     ports:
       - "127.0.0.1:9090:9090"
+    depends_on:
+      - alertmanager
+
+  alertmanager:
+    image: prom/alertmanager:v0.27.0
+    command:
+      - --config.file=/etc/alertmanager/alertmanager.yml
+    volumes:
+      - ./monitoring/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+    ports:
+      - "127.0.0.1:9093:9093"
 
   grafana:
     image: grafana/grafana:11.3.0
