@@ -46,6 +46,13 @@ GPX_ROUTE_KM = Histogram(
 MIN_HEALTHY_ANCHORS = 8
 MAX_HEALTHY_ROUTE_KM = 100
 
+# 라벨이 있는 카운터는 처음 발생하는 순간 1 로 생겨나서, Prometheus 의 increase() 가 0→1 증가를 보지 못한다
+# (첫 번째 실패에 알람이 안 울림). 가능한 라벨을 미리 0 으로 만들어 둔다.
+for _reason in ("few_anchors", "error_over_threshold", "route_too_long"):
+    GEOREF_SUSPICIOUS.labels(_reason)
+for _stage in ("prepare", "hisam", "ocr", "georef"):
+    STAGE_FAILURES.labels(_stage)
+
 
 def route_length_km(path: list, pixel_to_geo) -> float:
     """픽셀 경로를 위경도로 바꿔 총 길이(km)를 구한다."""
