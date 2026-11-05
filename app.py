@@ -57,6 +57,9 @@ from src.marathon_route_extraction.postprocess import postprocess_mask
 # ── FastAPI App Setup ─────────────────────────────────────────────────────────
 
 app = FastAPI(title="Marathon Route Extraction")
+# 모델 추론·외부 API 호출처럼 오래 걸리는 엔드포인트는 async def 가 아니라 def 로 둔다.
+# FastAPI 가 def 엔드포인트를 스레드풀에서 실행하므로, 처리 중에도 /metrics·/api/health 등 다른 요청에 응답한다.
+# (async def 안에서 수 분짜리 추론을 돌리면 이벤트 루프가 멈춰 Prometheus 수집이 실패했다)
 
 # Static files
 static_dir = Path(__file__).parent / "static"
@@ -289,7 +292,7 @@ async def root():
 
 
 @app.post("/api/predict")
-async def predict(file: UploadFile = File(...)):
+def predict(file: UploadFile = File(...)):
     """
     Upload an image and run mask prediction.
     
@@ -299,7 +302,7 @@ async def predict(file: UploadFile = File(...)):
     """
     try:
         # Read uploaded file
-        contents = await file.read()
+        contents = file.file.read()
         image_pil = Image.open(io.BytesIO(contents)).convert("RGB")
         
         # Get model and device
@@ -330,7 +333,7 @@ async def predict(file: UploadFile = File(...)):
 
 
 @app.post("/api/postprocess")
-async def postprocess(req: PostprocessRequest):
+def postprocess(req: PostprocessRequest):
     """
     Perform post-processing using the 4-step marathon path pipeline, then skeletonize.
 
@@ -379,7 +382,7 @@ async def postprocess(req: PostprocessRequest):
 
 
 @app.post("/api/extract_path")
-async def extract_path(req: PointsRequest):
+def extract_path(req: PointsRequest):
     """
     Extract ordered path from start to end on skeleton.
     
@@ -441,7 +444,7 @@ async def extract_path(req: PointsRequest):
 
 
 @app.post("/api/auto_extract_path")
-async def auto_extract_path_endpoint(req: AutoExtractRequest):
+def auto_extract_path_endpoint(req: AutoExtractRequest):
     """
     Automatically determine start/end from skeleton topology and extract ordered path.
 
@@ -485,7 +488,7 @@ async def auto_extract_path_endpoint(req: AutoExtractRequest):
 
 
 @app.post("/api/convert_gpx")
-async def convert_gpx(req: ConvertGPXRequest):
+def convert_gpx(req: ConvertGPXRequest):
     """
     Convert pixel path to GPX format.
 
@@ -539,7 +542,7 @@ async def convert_gpx(req: ConvertGPXRequest):
 
 
 @app.post("/api/georeference")
-async def georeference(file: UploadFile = File(...)):
+def georeference(file: UploadFile = File(...)):
     """
     마라톤 이미지에서 텍스트 OCR → 카카오 API → 오프셋 캘리브레이션 → 픽셀↔지리좌표 변환 행렬 계산.
 
@@ -596,7 +599,7 @@ async def georeference(file: UploadFile = File(...)):
             ),
         )
 
-    contents = await file.read()
+    contents = file.file.read()
     suffix   = Path(file.filename).suffix if file.filename else ".jpg"
     tmp_path = None
     crop_dir = None
@@ -723,7 +726,7 @@ async def georeference(file: UploadFile = File(...)):
 
 
 @app.post("/api/run_ocr")
-async def run_ocr_endpoint(file: UploadFile = File(...)):
+def run_ocr_endpoint(file: UploadFile = File(...)):
     """
     Stage 5 전용: Hi-SAM + PaddleOCR 실행.
 
@@ -750,7 +753,7 @@ async def run_ocr_endpoint(file: UploadFile = File(...)):
             detail=f"Hi-SAM 체크포인트 없음: {Config.HISAM_CHECKPOINT}",
         )
 
-    contents = await file.read()
+    contents = file.file.read()
     suffix   = Path(file.filename).suffix if file.filename else ".jpg"
     tmp_path = crop_dir = None
     stage    = "prepare"                     # 실패 지표에 어느 단계에서 실패했는지 남긴다
@@ -798,7 +801,7 @@ async def run_ocr_endpoint(file: UploadFile = File(...)):
 
 
 @app.post("/api/run_georeference")
-async def run_georeference_endpoint(
+def run_georeference_endpoint(
     file: UploadFile = File(...),
     ocr_results_json: str = Form(...),
 ):
@@ -839,7 +842,7 @@ async def run_georeference_endpoint(
     if not api_key:
         raise HTTPException(status_code=400, detail="환경변수 KAKAO_API_KEY가 설정되지 않았습니다.")
 
-    contents = await file.read()
+    contents = file.file.read()
     suffix   = Path(file.filename).suffix if file.filename else ".jpg"
     tmp_path = None
 
