@@ -404,3 +404,22 @@
 
 - 순천 실패 원인 (`georef_diagnose.py`): 영역 필터 후 앵커 69개가 **모두 순천**(23번 수정은 정상 동작). 그러나 같은 도시 안 오매칭(`부영2차아파트` 여러 개, 넓은 공원 `순천만국가정원`의 중심점 등)이 섞인 상태에서 **최대 오차 1개씩 제거**하는 방식이 정답 앵커(순천세무서, 낭만반점, 순천한국병원)부터 버리고 6개에서 강제 종료 → 22번 원인 3과 같은 문제
 - 의미: Hi-SAM 대체 가능성은 확인(송도 동일, OCR이 CPU에서도 6초). 다만 **지리좌표 단계의 이상치 제거가 입력 품질에 취약**해서, 텍스트 구성이 조금만 달라져도 결과가 무너짐 → Hi-SAM 대체보다 **RANSAC 교체(22번 다음 ②)가 먼저**
+
+### 29. Prometheus·Grafana·Alertmanager 모니터링 — 붙이자마자 버그 2개를 찾음 (2026-11-04)
+- 목적: 지금까지 사람이 로그(`[resource]`)와 스크립트로 하던 측정을 상시 감시로 전환. 비즈테크아이 공고의 "모니터링 기반 사전 장애 감지", Prometheus 우대 사항과 연결
+- 구성: 앱·OCR 서비스 `/metrics`(pull 방식) → Prometheus(15초 수집, 규칙 6개) → Alertmanager / Grafana(대시보드 12패널). 데이터 소스·대시보드·규칙 모두 코드로 관리 (`monitoring/`, `docker-compose.monitoring.yml`, 대시보드는 `build_dashboard.py`로 생성)
+- 지표: 단계별 처리 시간(Hi-SAM·OCR), 단계별 실패, API별 GPU 메모리, OCR 서비스 대기 시간, **결과 품질**(최종 앵커 수, 재투영 오차, GPX 경로 길이)과 **조용한 실패 카운터**(성공 응답이지만 앵커 8개 미만·오차 7px 초과·경로 100km 초과 — 22·25번 실제 사례로 기준 설정). 응답 동작은 바꾸지 않고 세기만 함
+- 앱·OCR 양쪽에서 OCR 시간을 재니 컨테이너 간 HTTP 비용이 약 0.1s로 드러남
+- **발견 1 — 이벤트 루프 블로킹**: 브라우저로 지도를 처리하는 동안 Prometheus 수집이 `context deadline exceeded`, ServiceDown이 pending. 원인은 `async def` 엔드포인트 안에서 수 분짜리 추론을 직접 실행해 이벤트 루프가 멈춘 것 → 처리 중에는 `/metrics`·`/api/health`·**다른 사용자 요청까지 전부 대기**. GPU에서는 Hi-SAM이 약 9초라 수집 제한(10초) 아래여서 드러나지 않았음
+  - 조치: 무거운 엔드포인트 8개를 `def`로 바꿔 FastAPI 스레드풀에서 실행, 업로드는 `file.file.read()`
+  - 검증 (`bench/responsiveness_test.py`, 로컬 CPU, 지도 처리 234s 동안 3초 간격): 수정 전 `/metrics` 10초 초과로 수집 실패 → 수정 후 **`/metrics`·`/api/health` 각 76/76 성공, 최대 0.10s**
+- **발견 2 — 첫 번째 실패에 알람이 안 울림**: 품질 기준 밖 결과를 주입하자 카운터는 1로 기록됐지만 `increase()=0`. 라벨별 카운터가 처음 발생 순간 1로 생겨나 Prometheus가 0→1 증가를 보지 못함
+  - 조치: 시작 시 가능한 라벨(`reason` 3종, `stage` 4종)을 0으로 미리 생성
+- 알람 검증 (`bench/alert_test.py`, 로컬)
+
+| 시나리오 | 결과 |
+|---|---|
+| OCR 컨테이너 정지 | ServiceDown pending 22s → **firing 81s**(규칙 `for: 1m` 포함) → Alertmanager +2s. 재시작 후 **해제 43s**(모델 로드 포함) |
+| 품질 기준 밖 결과 주입 (Hi-SAM 없는 순천 OCR, 28번) | API는 **HTTP 200·success**, 앵커 6개·오차 7.0px → **SilentGeorefFailure firing 22s**, 원인 `few_anchors`·`error_over_threshold`, Alertmanager 도착 |
+
+- 남은 것: 알람 전달 채널(Slack·Discord 웹훅, URL은 비밀값이라 git 제외), EC2에서 GPU 지표(DCGM exporter), 조용한 실패를 응답 자체에서 실패로 처리(22번 다음 ①)
