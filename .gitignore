@@ -43,3 +43,6 @@ Hi-SAM/datasets/
 # 지도 캡처로 만든 파이프라인 결과 (지도 데이터 포함)
 bench/e2e/
 /123.png
+
+# Prometheus AWS 수집 대상 — EC2 공인 IP 가 들어 있고 Terraform 이 매번 새로 씀
+monitoring/targets/*.json

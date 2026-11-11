@@ -254,13 +254,22 @@ docker build -t marathon-gpx:split .
 
 # 두 컨테이너 실행
 docker network create marathon
-docker run -d --name ocr --network marathon --gpus all -e PADDLE_DEVICE=gpu \
+docker run -d --name ocr --network marathon --gpus all -p 8020:8020 -e PADDLE_DEVICE=gpu \
   -v paddlex-cache:/root/.paddlex marathon-ocr:gpu
 docker run -d --name app --network marathon --gpus all -p 8010:8010 \
   --env-file .env -e OCR_SERVICE_URL=http://ocr:8020 \
   -v /opt/marathon/weights:/app/weights \
   -v /opt/marathon/hisam:/app/Hi-SAM/pretrained_checkpoint \
   marathon-gpx:split
+
+# (선택) 큐 작업자 — 로컬 작업자와 같은 큐를 나눠 처리. 자격증명은 인스턴스 역할(처리 권한만)
+docker build -t marathon-worker:local worker
+docker run -d --name worker --network marathon --stop-timeout 600 \
+  -e APP_URL=http://app:8010 -e WORKER_NAME=ec2 marathon-worker:local
+
+# GPU 지표 수집기 — 온프레미스 Prometheus 가 :9400 을 수집 (대상 등록은 terraform apply 가 자동으로)
+docker run -d --name dcgm --gpus all --cap-add SYS_ADMIN -p 9400:9400 \
+  nvcr.io/nvidia/k8s/dcgm-exporter:4.4.2-4.7.1-ubuntu22.04
 ```
 
 **작업이 끝나면 반드시 삭제합니다** (g4dn.xlarge 시간당 약 $0.53):

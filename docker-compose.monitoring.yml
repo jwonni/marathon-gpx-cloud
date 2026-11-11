@@ -16,6 +16,7 @@ services:
     volumes:
       - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - ./monitoring/alerts.yml:/etc/prometheus/alerts.yml:ro
+      - ./monitoring/targets:/etc/prometheus/targets:ro   # AWS 수집 대상 (Terraform 이 작성)
       - prometheus-data:/prometheus
     ports:
       - "127.0.0.1:9090:9090"

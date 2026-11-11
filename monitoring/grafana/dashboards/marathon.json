@@ -17,7 +17,7 @@
    "id": 1,
    "type": "stat",
    "title": "서비스 상태",
-   "description": "Prometheus 가 /metrics 를 읽지 못하면 0 (다운)",
+   "description": "Prometheus 가 /metrics 를 읽지 못하면 0 (다운). site=onprem(로컬), aws(GPU EC2 — 켜져 있을 때만 표시)",
    "datasource": {
     "type": "prometheus",
     "uid": "prometheus"
@@ -34,18 +34,9 @@
       "type": "prometheus",
       "uid": "prometheus"
      },
-     "expr": "up{job=\"app\"}",
-     "legendFormat": "앱",
+     "expr": "up{job=~\"app|ocr|gpu\"}",
+     "legendFormat": "{{site}} {{job}}",
      "refId": "A"
-    },
-    {
-     "datasource": {
-      "type": "prometheus",
-      "uid": "prometheus"
-     },
-     "expr": "up{job=\"ocr\"}",
-     "legendFormat": "OCR",
-     "refId": "B"
     }
    ],
    "fieldConfig": {
@@ -668,6 +659,195 @@
    "fieldConfig": {
     "defaults": {
      "unit": "s",
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 2,
+      "pointSize": 5,
+      "showPoints": "always",
+      "spanNulls": true
+     }
+    },
+    "overrides": []
+   },
+   "options": {}
+  },
+  {
+   "id": 13,
+   "type": "stat",
+   "title": "처리한 지도 수 (위치별)",
+   "description": "같은 큐를 온프레미스와 AWS 작업자가 나눠 처리한 결과 (decision-log 33번)",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "gridPos": {
+    "x": 0,
+    "y": 25,
+    "w": 6,
+    "h": 6
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "sum by (site) (increase(marathon_request_seconds_count{path=\"/api/run_ocr\"}[$__range]))",
+     "legendFormat": "{{site}}",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "decimals": 0,
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "blue",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "colorMode": "background",
+    "graphMode": "none",
+    "textMode": "value_and_name"
+   }
+  },
+  {
+   "id": 14,
+   "type": "timeseries",
+   "title": "OCR 단계 평균 시간 (위치별)",
+   "description": "지도 1장의 글자 검출+인식 시간. 온프레미스(CPU)와 GPU 의 차이",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "gridPos": {
+    "x": 6,
+    "y": 25,
+    "w": 6,
+    "h": 6
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "sum by (site) (increase(marathon_stage_seconds_sum{stage=~\"hisam|ocr\"}[15m])) / sum by (site) (increase(marathon_request_seconds_count{path=\"/api/run_ocr\"}[15m]))",
+     "legendFormat": "{{site}}",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "s",
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 2,
+      "pointSize": 5,
+      "showPoints": "always",
+      "spanNulls": true
+     }
+    },
+    "overrides": []
+   },
+   "options": {}
+  },
+  {
+   "id": 15,
+   "type": "timeseries",
+   "title": "GPU 사용률 (AWS)",
+   "description": "DCGM exporter. 처리 중인데 5% 미만이면 GpuIdleWhileProcessing 알람",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "gridPos": {
+    "x": 12,
+    "y": 25,
+    "w": 6,
+    "h": 6
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "DCGM_FI_DEV_GPU_UTIL",
+     "legendFormat": "GPU {{gpu}}",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "percent",
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 2,
+      "pointSize": 5,
+      "showPoints": "always",
+      "spanNulls": true
+     }
+    },
+    "overrides": []
+   },
+   "options": {}
+  },
+  {
+   "id": 16,
+   "type": "timeseries",
+   "title": "GPU 메모리 사용량 (AWS)",
+   "description": "요청별 최대값(11번)과 달리 GPU 전체의 실제 사용량. 모델 상주분 포함",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "gridPos": {
+    "x": 18,
+    "y": 25,
+    "w": 6,
+    "h": 6
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "DCGM_FI_DEV_FB_USED * 1024 * 1024",
+     "legendFormat": "사용",
+     "refId": "A"
+    },
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "(DCGM_FI_DEV_FB_USED + DCGM_FI_DEV_FB_FREE) * 1024 * 1024",
+     "legendFormat": "전체",
+     "refId": "B"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "bytes",
      "custom": {
       "drawStyle": "line",
       "lineWidth": 2,

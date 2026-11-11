@@ -3,13 +3,13 @@ groups:
   - name: marathon-availability
     rules:
       - alert: ServiceDown
-        expr: up{job=~"app|ocr"} == 0
+        expr: up{job=~"app|ocr|gpu"} == 0
         for: 1m
         labels:
           severity: critical
         annotations:
-          summary: "{{ $labels.job }} 서비스가 1분 넘게 응답하지 않음"
-          description: "Prometheus 가 /metrics 를 읽지 못하고 있다. 컨테이너 상태와 로그를 확인할 것"
+          summary: "{{ $labels.site }} {{ $labels.job }} 서비스가 1분 넘게 응답하지 않음"
+          description: "Prometheus 가 /metrics 를 읽지 못하고 있다. 컨테이너 상태와 로그를 확인할 것. site=aws 면 보안 그룹 허용 IP(내 IP 변경 여부)도 확인"
 
       - alert: StageFailures
         expr: sum by (stage) (increase(marathon_stage_failures_total[10m])) > 0
@@ -46,6 +46,17 @@ groups:
         annotations:
           summary: "GPU 메모리 사용량 14GB 초과 (T4 16GB)"
           description: "동시 요청이 들어오면 메모리 부족으로 실패할 수 있다 (decision-log 25번: FP32 3000점에서 14.6GB 관측)"
+
+      # 처리 중인데 GPU 를 거의 쓰지 않음 = 모델이 CPU 로 돌고 있을 가능성 (드라이버·--gpus 누락 등)
+      - alert: GpuIdleWhileProcessing
+        expr: |
+          avg_over_time(DCGM_FI_DEV_GPU_UTIL[5m]) < 5
+          and on (instance_id) (sum by (instance_id) (increase(marathon_request_seconds_count{site="aws", path="/api/run_ocr"}[5m])) > 0)
+        labels:
+          severity: warning
+        annotations:
+          summary: "AWS GPU 서버가 요청을 처리하는데 GPU 사용률이 5% 미만"
+          description: "모델이 GPU 대신 CPU 로 실행되고 있을 수 있다. 컨테이너 --gpus 옵션, nvidia-smi 확인"
 
       - alert: OcrQueueBacklog
         expr: histogram_quantile(0.95, sum by (le) (increase(marathon_ocr_service_queue_wait_seconds_bucket[10m]))) > 10

@@ -41,8 +41,8 @@ GOOD, WARN, BAD = "green", "orange", "red"
 panels = [
     # ── 1행: 서비스 상태 한눈에 ──────────────────────────────────────────────────
     panel(1, "서비스 상태", "stat", 0, 0, 6, 4,
-          [target('up{job="app"}', "앱"), target('up{job="ocr"}', "OCR")],
-          desc="Prometheus 가 /metrics 를 읽지 못하면 0 (다운)",
+          [target('up{job=~"app|ocr|gpu"}', "{{site}} {{job}}")],
+          desc="Prometheus 가 /metrics 를 읽지 못하면 0 (다운). site=onprem(로컬), aws(GPU EC2 — 켜져 있을 때만 표시)",
           thresholds=[{"color": BAD, "value": None}, {"color": GOOD, "value": 1}]),
     panel(2, "품질 기준 미달 결과", "stat", 6, 0, 6, 4,
           [target(f'sum(increase(marathon_georef_suspicious_total{W})) or vector(0)', "건수")],
@@ -88,6 +88,22 @@ panels = [
     panel(12, "OCR 서비스 대기 시간 p95", "timeseries", 12, 17, 12, 8,
           [target('histogram_quantile(0.95, sum by (le) (increase(marathon_ocr_service_queue_wait_seconds_bucket[15m])))', "대기 p95")],
           unit="s", desc="OCR 은 한 번에 하나씩 처리한다. 이 값이 커지면 요청이 줄을 서는 것 → OCR 컨테이너를 늘릴 신호"),
+
+    # ── 5행: 하이브리드 (온프레미스 vs AWS GPU) ─────────────────────────────────────
+    panel(13, "처리한 지도 수 (위치별)", "stat", 0, 25, 6, 6,
+          [target(f'sum by (site) (increase(marathon_request_seconds_count{{path="/api/run_ocr"}}{W}))', "{{site}}")],
+          desc="같은 큐를 온프레미스와 AWS 작업자가 나눠 처리한 결과 (decision-log 33번)",
+          thresholds=[{"color": "blue", "value": None}], decimals=0),
+    panel(14, "OCR 단계 평균 시간 (위치별)", "timeseries", 6, 25, 6, 6,
+          [target('sum by (site) (increase(marathon_stage_seconds_sum{stage=~"hisam|ocr"}[15m])) / sum by (site) (increase(marathon_request_seconds_count{path="/api/run_ocr"}[15m]))', "{{site}}")],
+          unit="s", desc="지도 1장의 글자 검출+인식 시간. 온프레미스(CPU)와 GPU 의 차이"),
+    panel(15, "GPU 사용률 (AWS)", "timeseries", 12, 25, 6, 6,
+          [target('DCGM_FI_DEV_GPU_UTIL', "GPU {{gpu}}")],
+          unit="percent", desc="DCGM exporter. 처리 중인데 5% 미만이면 GpuIdleWhileProcessing 알람"),
+    panel(16, "GPU 메모리 사용량 (AWS)", "timeseries", 18, 25, 6, 6,
+          [target('DCGM_FI_DEV_FB_USED * 1024 * 1024', "사용"),
+           target('(DCGM_FI_DEV_FB_USED + DCGM_FI_DEV_FB_FREE) * 1024 * 1024', "전체")],
+          unit="bytes", desc="요청별 최대값(11번)과 달리 GPU 전체의 실제 사용량. 모델 상주분 포함"),
 ]
 
 dashboard = {

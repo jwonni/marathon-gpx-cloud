@@ -13,10 +13,26 @@ alerting:
         - targets: ["alertmanager:9093"]
 
 scrape_configs:
+  # 하이브리드: 온프레미스(같은 compose 네트워크)는 고정 대상, AWS(GPU EC2)는 Terraform 이 쓰는 파일로 등록
+  # (infra/envs/dev/gpu-ec2/monitoring.tf — apply 때 생성, destroy 때 삭제). 모든 지표에 site 라벨
+  # files 는 glob: EC2 가 없을 때(파일 없음) 오류 없이 대상 0개로 처리
   - job_name: app            # FastAPI 앱 (Hi-SAM, 지리좌표, GPX)
     static_configs:
       - targets: ["app:8010"]
+        labels: { site: onprem }
+    file_sd_configs:
+      - files: ["/etc/prometheus/targets/aws-app*.json"]
+        refresh_interval: 30s  # Windows 볼륨은 파일 변경 알림이 오지 않을 수 있어 주기적으로 다시 읽음
 
   - job_name: ocr            # OCR 서비스 (PaddleOCR)
     static_configs:
       - targets: ["ocr:8020"]
+        labels: { site: onprem }
+    file_sd_configs:
+      - files: ["/etc/prometheus/targets/aws-ocr*.json"]
+        refresh_interval: 30s
+
+  - job_name: gpu            # NVIDIA DCGM exporter (GPU 사용률·메모리·온도). EC2 에만 있음
+    file_sd_configs:
+      - files: ["/etc/prometheus/targets/aws-gpu*.json"]
+        refresh_interval: 30s

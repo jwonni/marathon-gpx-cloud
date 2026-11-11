@@ -7,6 +7,11 @@ terraform {
       source  = "hashicorp/aws"
       version = "~> 6.0"
     }
+    # Prometheus 수집 대상 파일 작성용 (monitoring.tf)
+    local = {
+      source  = "hashicorp/local"
+      version = "~> 2.5"
+    }
   }
 }
 
