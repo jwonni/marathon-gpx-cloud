@@ -56,7 +56,8 @@
           "iam:PolicyARN": [
             "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly",
             "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore",
-            "arn:aws:iam::507138241931:policy/marathon-s3-models-read"
+            "arn:aws:iam::507138241931:policy/marathon-s3-models-read",
+            "arn:aws:iam::507138241931:policy/marathon-queue-worker"
           ]
         }
       }
@@ -68,7 +69,8 @@
       "Resource": [
         "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly",
         "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore",
-        "arn:aws:iam::507138241931:policy/marathon-s3-models-read"
+        "arn:aws:iam::507138241931:policy/marathon-s3-models-read",
+        "arn:aws:iam::507138241931:policy/marathon-queue-worker"
       ]
     },
     {

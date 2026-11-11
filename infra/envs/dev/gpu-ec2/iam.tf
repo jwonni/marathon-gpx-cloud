@@ -20,6 +20,12 @@ resource "aws_iam_role_policy_attachment" "models_read" {
   policy_arn = "arn:aws:iam::507138241931:policy/marathon-s3-models-read"
 }
 
+# 권한: 작업 큐에서 꺼내 처리하기만 (작업 넣기는 없음). decision-log 31·33번
+resource "aws_iam_role_policy_attachment" "queue_worker" {
+  role       = aws_iam_role.gpu.name
+  policy_arn = "arn:aws:iam::507138241931:policy/marathon-queue-worker"
+}
+
 # 역할을 EC2 에 붙이기 위한 연결 고리
 resource "aws_iam_instance_profile" "gpu" {
   name = "marathon-tf-ec2-profile"

@@ -1,0 +1,20 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "ManageMarathonQueuesOnly",
+      "Effect": "Allow",
+      "Action": "sqs:*",
+      "Resource": "arn:aws:sqs:ap-northeast-2:507138241931:marathon-*"
+    },
+    {
+      "Sid": "ManageJobsBucketOnly",
+      "Effect": "Allow",
+      "Action": "s3:*",
+      "Resource": [
+        "arn:aws:s3:::marathon-gpx-jobs-507138241931",
+        "arn:aws:s3:::marathon-gpx-jobs-507138241931/*"
+      ]
+    }
+  ]
+}

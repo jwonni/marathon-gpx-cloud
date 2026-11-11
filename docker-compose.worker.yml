@@ -1,0 +1,21 @@
+# 큐 작업자 (decision-log 31번). 앱 compose 위에 겹쳐서 띄운다
+#
+#   docker build -t marathon-worker:local worker
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml -f docker-compose.worker.yml up -d
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml -f docker-compose.worker.yml logs -f worker
+#
+# 로컬은 PC 의 AWS 프로필(marathon-local)을 읽기 전용으로 넘긴다. EC2 에서는 프로필 대신 인스턴스 역할을 쓴다
+
+services:
+  worker:
+    image: marathon-worker:local
+    environment:
+      APP_URL: http://app:8010
+      WORKER_NAME: local
+      AWS_PROFILE: marathon-local
+    volumes:
+      - ${USERPROFILE}/.aws:/root/.aws:ro
+    depends_on:
+      - app
+    # docker stop 이 SIGTERM 후 기본 10초면 강제 종료한다. 진행 중인 지도 1장(CPU 수 분)을 마칠 시간을 준다
+    stop_grace_period: 10m

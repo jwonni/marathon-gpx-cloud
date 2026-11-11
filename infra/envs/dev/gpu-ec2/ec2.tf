@@ -14,8 +14,11 @@ resource "aws_instance" "gpu" {
   }
 
   # 인스턴스 메타데이터는 토큰 방식(IMDSv2)만 허용 → 웹 취약점(SSRF)으로 역할 자격증명이 새는 경로 차단
+  # 홉 제한 2: 기본값 1이면 docker 컨테이너(네트워크 1단계 더)에서 토큰을 받지 못해
+  # 작업자 컨테이너가 역할 자격증명을 얻지 못한다 (decision-log 33번)
   metadata_options {
-    http_tokens = "required"
+    http_tokens                 = "required"
+    http_put_response_hop_limit = 2
   }
 
   tags = {
